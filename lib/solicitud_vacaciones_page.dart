@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
 
 class SolicitudVacacionesPage extends StatefulWidget {
   final String username;
@@ -120,7 +121,9 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
-        ),
+        )
+            .animate()
+            .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
         backgroundColor: Colors.lightGreen,
         centerTitle: true,
       ),
@@ -137,35 +140,69 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
-            ),
+            )
+                .animate()
+                .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
             const SizedBox(height: 20.0),
             _buildTextField(
               controller: dateController,
               label: 'Fecha de Solicitud',
               icon: Icons.today,
               readOnly: true,
-            ),
+            )
+                .animate()
+                .slideX(
+                    begin: -1.0,
+                    end: 0.0,
+                    duration: 500.ms,
+                    curve: Curves.easeOut)
+                .fadeIn(
+                    duration: 500.ms), // Animación de deslizamiento y fadeIn
             const SizedBox(height: 16.0),
             _buildTextField(
               controller: usernameController,
               label: 'Nombre del Empleado',
               icon: Icons.person_outlined,
               readOnly: true,
-            ),
+            )
+                .animate()
+                .slideX(
+                    begin: -1.0,
+                    end: 0.0,
+                    duration: 500.ms,
+                    curve: Curves.easeOut)
+                .fadeIn(
+                    duration: 500.ms), // Animación de deslizamiento y fadeIn
             const SizedBox(height: 16.0),
             _buildTextField(
               controller: rolController,
               label: 'Cargo que Desempeña',
               icon: Icons.business_center,
               readOnly: true,
-            ),
+            )
+                .animate()
+                .slideX(
+                    begin: -1.0,
+                    end: 0.0,
+                    duration: 500.ms,
+                    curve: Curves.easeOut)
+                .fadeIn(
+                    duration: 500.ms), // Animación de deslizamiento y fadeIn
             const SizedBox(height: 16.0),
             _buildTextField(
               controller: roluserController,
               label: 'Área',
               icon: Icons.apartment,
               readOnly: true,
-            ),
+            )
+                .animate()
+                .slideX(
+                    begin: -1.0,
+                    end: 0.0,
+                    duration: 500.ms,
+                    curve: Curves.easeOut)
+                .fadeIn(
+                    duration: 500.ms), // Animación de deslizamiento y fadeIn
             const SizedBox(height: 16.0),
             Container(
               decoration: BoxDecoration(
@@ -254,7 +291,15 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
                   ),
                 ],
               ),
-            ),
+            )
+                .animate()
+                .slideX(
+                    begin: 1.0,
+                    end: 0.0,
+                    duration: 500.ms,
+                    curve: Curves.easeOut)
+                .fadeIn(
+                    duration: 500.ms), // Animación de deslizamiento y fadeIn
             const SizedBox(height: 16.0),
             Row(
               children: [
@@ -282,14 +327,22 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
                   ),
                 ),
               ],
-            ),
+            ).animate().fadeIn(duration: 500.ms), // Animación de fadeIn
             const SizedBox(height: 16.0),
             _buildTextField(
               controller: rangoFechaController,
               label: 'Rango de Fechas Seleccionado',
               icon: Icons.date_range,
               readOnly: true,
-            ),
+            )
+                .animate()
+                .slideX(
+                    begin: -1.0,
+                    end: 0.0,
+                    duration: 500.ms,
+                    curve: Curves.easeOut)
+                .fadeIn(
+                    duration: 500.ms), // Animación de deslizamiento y fadeIn
             const SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: _enviarSolicitud,
@@ -303,7 +356,7 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
               ),
               child: Text('Enviar Solicitud',
                   style: TextStyle(color: Colors.white)),
-            ),
+            ).animate().scale(delay: 500.ms), // Animación de escala en el botón
           ],
         ),
       ),

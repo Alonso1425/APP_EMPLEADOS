@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
 
 class ComunicadosPage extends StatelessWidget {
   const ComunicadosPage({super.key});
+
+  // Función para ordenar los comunicados por fecha (del más reciente al más antiguo)
+  List<Map<String, String>> _ordenarComunicadosPorFecha(
+      List<Map<String, String>> comunicados) {
+    return comunicados
+      ..sort((a, b) {
+        final fechaA = DateTime.parse(a['fecha']!);
+        final fechaB = DateTime.parse(b['fecha']!);
+        return fechaB.compareTo(fechaA); // Orden descendente
+      });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,22 +37,10 @@ class ComunicadosPage extends StatelessWidget {
         'fecha': '2025-01-25',
         'usuario': 'Karem',
       },
-      {
-        'titulo': 'Reunión General',
-        'contenido':
-            'Habrá una reunión general el próximo lunes en la sala de conferencias.',
-        'imagen': 'assets/img/Muestra.jpg',
-        'fecha': '2025-01-30',
-        'usuario': 'Araceli',
-      },
-      {
-        'titulo': 'Desarrollo de Actualizaciones',
-        'contenido': 'Habrá una serie de actualizaciones para la App.',
-        'imagen': 'assets/img/Muestra2.jpg',
-        'fecha': '2025-01-30',
-        'usuario': 'Jorge Alberto',
-      },
     ];
+
+    // Ordenar los comunicados antes de mostrarlos
+    final comunicadosOrdenados = _ordenarComunicadosPorFecha(comunicados);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -52,15 +52,17 @@ class ComunicadosPage extends StatelessWidget {
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
-        ),
+        )
+            .animate()
+            .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
         backgroundColor: Colors.yellow[900],
         centerTitle: true,
       ),
       body: ListView.builder(
-        itemCount: comunicados.length,
+        itemCount: comunicadosOrdenados.length,
         padding: const EdgeInsets.all(8.0),
         itemBuilder: (context, index) {
-          final comunicado = comunicados[index];
+          final comunicado = comunicadosOrdenados[index];
           return Card(
             color: Colors.white,
             elevation: 5,
@@ -141,7 +143,11 @@ class ComunicadosPage extends StatelessWidget {
                 ],
               ),
             ),
-          );
+          )
+              .animate()
+              .slideX(
+                  begin: 1.0, end: 0.0, duration: 500.ms, curve: Curves.easeOut)
+              .fadeIn(duration: 500.ms); // Animación de deslizamiento y fadeIn
         },
       ),
     );

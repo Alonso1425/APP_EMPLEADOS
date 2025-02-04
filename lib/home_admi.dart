@@ -1,8 +1,7 @@
+import 'package:empleados_app/comunicados_admi_page.dart';
+import 'package:empleados_app/confidencial_admi_page.dart';
 import 'package:empleados_app/ver_solicitud_admi_page.dart';
 import 'package:flutter/material.dart';
-import 'comunicados_page.dart';
-import 'ver_solicitud_admi_page.dart'; // Nueva pantalla para ver y gestionar solicitudes
-import 'confidencial_page.dart';
 import 'login.dart';
 
 class HomeAdmiPage extends StatefulWidget {
@@ -20,34 +19,38 @@ class HomeAdmiPage extends StatefulWidget {
   });
 
   @override
-  _HomeAdmiPageState createState() => _HomeAdmiPageState();
+  _HomeAdmiState createState() => _HomeAdmiState();
 }
 
-class _HomeAdmiPageState extends State<HomeAdmiPage> {
+class _HomeAdmiState extends State<HomeAdmiPage> {
   int _selectedIndex = 0;
 
-  // Lista de páginas
+  //LISTA DE PÁGINAS DEL HOMEADMI
   final List<Widget> _widgetOptions = <Widget>[];
 
   @override
   void initState() {
     super.initState();
-    // Inicializar las páginas según el rol
+
+    //INICIALIZAMOS LAS PÁGINAS
     _widgetOptions.addAll([
-      ComunicadosPage(), // Índice 0
-      VerSolicitudesVacacionesPage(), // Índice 1 (Nueva pantalla para gestionar solicitudes)
-      ConfidencialPage(), // Índice 2
+      //COMUNICADOS ADMIN - INDICE = 0
+      ComunicadosAdmiPage(),
+      AdminVacacionesPage(),
+      ConfidencialAdminPage(),
+      //VER SOLICITUD DE VACACIONES ADMIN - INDICE = 1
+      //CONFIDENCIAL ADMIN - INDICE = 2
     ]);
   }
 
-  // Cambiar la página seleccionada
+  //CAMBIAR LA PÁGINA SELECCIONADA
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  // Cerrar sesión
+  //DIALOG DE CERRAR SESIÓN
   void _logout() {
     showDialog(
       context: context,
@@ -149,7 +152,8 @@ class _HomeAdmiPageState extends State<HomeAdmiPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.list_alt_outlined, color: Colors.blueGrey),
+              leading:
+                  Icon(Icons.beach_access_outlined, color: Colors.blueGrey),
               title: Text(
                 'Ver Solicitudes de Vacaciones',
                 style: TextStyle(fontSize: 18),
@@ -162,7 +166,7 @@ class _HomeAdmiPageState extends State<HomeAdmiPage> {
             ListTile(
               leading: Icon(Icons.privacy_tip_outlined, color: Colors.blueGrey),
               title: Text(
-                'Confidencialidad',
+                'Ver Confidencialidad',
                 style: TextStyle(fontSize: 18),
               ),
               onTap: () {
@@ -191,15 +195,15 @@ class _HomeAdmiPageState extends State<HomeAdmiPage> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.announcement),
-            label: 'Comunicados',
+            label: 'Ver Comunicados',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Solicitudes',
+            icon: Icon(Icons.beach_access),
+            label: 'Ver Solicitudes de Vacaciones',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.report_gmailerrorred),
-            label: 'Confidencial',
+            icon: Icon(Icons.privacy_tip_outlined),
+            label: 'Ver Confidencialidad',
           ),
         ],
         currentIndex: _selectedIndex,

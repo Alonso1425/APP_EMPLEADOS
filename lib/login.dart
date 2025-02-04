@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'home.dart';
+import 'home.dart'; // Importa la pantalla de inicio normal
+import 'home_admi.dart'; // Importa la pantalla de administración
 import 'register.dart';
 
 class LoginPage extends StatefulWidget {
@@ -41,9 +42,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     final response = await http.post(
-      //Uri.parse('http://localhost/api/login.php'), //PC
-      Uri.parse('http://192.168.1.80/api/login.php'), //MÓVIL OFICINA
-      //Uri.parse('http://192.168.100.7/api/login.php'), //API CASA
+      Uri.parse('http://192.168.1.67/api/login.php'), //API
       body: jsonEncode({
         "email": emailController.text,
         "password": passwordController.text,
@@ -61,13 +60,37 @@ class _LoginPageState extends State<LoginPage> {
       String email = data['email'] ?? 'Email';
       String rol = data['rol'] ?? 'Rol';
       String roluser = data['rol_user'] ?? 'Rol Usuario';
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(
-              username: username, email: email, rol: rol, roluser: roluser),
-        ),
-      );
+
+      // Validar el rol del usuario
+      if (roluser == "Encargados de Área" ||
+          roluser == "Administrativo" ||
+          rol == "Encargado de Área") {
+        // Redirigir a la pantalla de administración
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeAdmiPage(
+              username: username,
+              email: email,
+              rol: rol,
+              roluser: roluser,
+            ),
+          ),
+        );
+      } else {
+        // Redirigir a la pantalla de inicio normal
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(
+              username: username,
+              email: email,
+              rol: rol,
+              roluser: roluser,
+            ),
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

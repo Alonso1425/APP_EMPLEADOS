@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
 
 class ConfidencialPage extends StatefulWidget {
   const ConfidencialPage({super.key});
@@ -46,7 +47,10 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Confidencialidad',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white))
+            .animate()
+            .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
         centerTitle: true,
         backgroundColor: Colors.blueGrey[600],
         elevation: 4, // Ligera sombra para darle profundidad
@@ -67,7 +71,7 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
-                  ),
+                  ).animate().fadeIn(duration: 500.ms), // Animación de fadeIn
                 ),
                 const SizedBox(height: 20.0),
                 // Campo de fecha (automático)
@@ -82,7 +86,16 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                     readOnly: true,
                     enabled: false, // Deshabilitado ya que es automático
                   ),
-                ),
+                )
+                    .animate()
+                    .slideX(
+                        begin: -1.0,
+                        end: 0.0,
+                        duration: 500.ms,
+                        curve: Curves.easeOut)
+                    .fadeIn(
+                        duration:
+                            500.ms), // Animación de deslizamiento y fadeIn
                 SizedBox(height: 20),
 
                 // Campo de categoría
@@ -118,7 +131,16 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                     dropdownColor: Colors.white,
                     borderRadius: BorderRadius.circular(15.0),
                   ),
-                ),
+                )
+                    .animate()
+                    .slideX(
+                        begin: -1.0,
+                        end: 0.0,
+                        duration: 500.ms,
+                        curve: Curves.easeOut)
+                    .fadeIn(
+                        duration:
+                            500.ms), // Animación de deslizamiento y fadeIn
                 SizedBox(height: 20),
 
                 // Campo de mensaje
@@ -134,7 +156,16 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                       return null;
                     },
                   ),
-                ),
+                )
+                    .animate()
+                    .slideX(
+                        begin: -1.0,
+                        end: 0.0,
+                        duration: 500.ms,
+                        curve: Curves.easeOut)
+                    .fadeIn(
+                        duration:
+                            500.ms), // Animación de deslizamiento y fadeIn
                 SizedBox(height: 20),
 
                 // Botón de enviar
@@ -153,7 +184,9 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                     'Enviar',
                     style: TextStyle(color: Colors.white),
                   ),
-                ),
+                )
+                    .animate()
+                    .scale(delay: 500.ms), // Animación de escala en el botón
               ],
             ),
           ),

@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/animation.dart';
 
-class VerSolicitudPage extends StatelessWidget {
-  // Simulación de datos de solicitudes (esto vendría de una API)
+class VerSolicitudPage extends StatefulWidget {
+  @override
+  _VerSolicitudPageState createState() => _VerSolicitudPageState();
+}
+
+class _VerSolicitudPageState extends State<VerSolicitudPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _animation;
+  late Animation<double> _fadeAnimation;
+
   final List<Map<String, dynamic>> solicitudes = [
     {
       'nombre': 'Juan Pérez',
@@ -32,18 +42,50 @@ class VerSolicitudPage extends StatelessWidget {
     },
   ];
 
-  VerSolicitudPage({super.key});
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 700),
+      vsync: this,
+    );
+    _animation = Tween<Offset>(
+      begin: Offset(0.0, 1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          'Mis Solicitudes',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+        title: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Text(
+            'Mis Solicitudes',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         backgroundColor: Colors.lightGreen,
@@ -53,15 +95,16 @@ class VerSolicitudPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         itemCount: solicitudes.length,
         itemBuilder: (context, index) {
-          final solicitud = solicitudes[index];
-          return _buildSolicitudCard(solicitud);
+          return SlideTransition(
+            position: _animation,
+            child: _buildSolicitudCard(solicitudes[index]),
+          );
         },
       ),
     );
   }
 
   Widget _buildSolicitudCard(Map<String, dynamic> solicitud) {
-    // Color del estado
     Color estadoColor;
     switch (solicitud['estado']) {
       case 'Aprobada':
@@ -77,36 +120,39 @@ class VerSolicitudPage extends StatelessWidget {
         estadoColor = Colors.grey;
     }
 
-    return Card(
-      elevation: 4.0,
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
       margin: const EdgeInsets.only(bottom: 16.0),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(15.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 5.0,
+            spreadRadius: 2.0,
+            offset: Offset(2, 4),
+          ),
+        ],
       ),
-      color: Colors.white, // Fondo blanco para todas las tarjetas
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Nombre
             _buildInfoRow(Icons.person, 'Nombre', solicitud['nombre']),
             const SizedBox(height: 8.0),
-            // Cargo
             _buildInfoRow(Icons.work, 'Cargo', solicitud['cargo']),
             const SizedBox(height: 8.0),
-            // Área
             _buildInfoRow(Icons.business, 'Área', solicitud['area']),
             const SizedBox(height: 8.0),
-            // Fecha de Solicitud
             _buildInfoRow(Icons.calendar_today, 'Fecha de Solicitud',
                 solicitud['fechaSolicitud']),
             const SizedBox(height: 8.0),
-            // Rango de Fechas
             _buildInfoRow(
                 Icons.date_range, 'Rango de Fechas', solicitud['rangoFechas']),
             const SizedBox(height: 8.0),
-            // Estado
             Row(
               children: [
                 Icon(Icons.circle, color: estadoColor, size: 16.0),
@@ -129,7 +175,6 @@ class VerSolicitudPage extends StatelessWidget {
                 ),
               ],
             ),
-            // Motivo de Rechazo (si aplica)
             if (solicitud['estado'] == 'Rechazada') ...[
               const SizedBox(height: 8.0),
               _buildInfoRow(Icons.warning, 'Motivo de Rechazo',

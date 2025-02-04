@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -57,9 +58,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     final response = await http.post(
-      //Uri.parse('http://localhost/api/register.php'), //PC
-      Uri.parse('http://192.168.1.80/api/register.php'), //MÓVIL OFICINA
-      //Uri.parse('http://192.168.100.7/api/login.php'), //API CASA
+      Uri.parse('http://192.168.1.67/api/register.php'), //API
       body: jsonEncode({
         "username": usernameController.text,
         "paternal_surname": paternalsurnameController.text,
@@ -102,7 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión con el servidor.')),
+        SnackBar(content: Text('Error de Conexión con el Servidor.')),
       );
     }
   }
@@ -113,7 +112,10 @@ class _RegisterPageState extends State<RegisterPage> {
       backgroundColor: Colors.blueGrey[200],
       appBar: AppBar(
         title: Text('Formulario de Registro',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+            .animate()
+            .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
         backgroundColor: const Color.fromARGB(255, 0, 140, 255),
       ),
       body: Center(
@@ -138,7 +140,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         fontSize: 28.0,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87),
-                  ),
+                  ).animate().fadeIn(
+                      duration: 500.ms), // Animación de fadeIn en el título
                   SizedBox(height: 20.0),
                   TextField(
                     controller: usernameController,
@@ -157,7 +160,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                     cursorColor: Colors.black,
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   SizedBox(height: 16.0),
                   TextField(
                     controller: paternalsurnameController,
@@ -177,7 +189,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                     cursorColor: Colors.black,
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   SizedBox(height: 16.0),
                   TextField(
                     controller: maternalsurnameController,
@@ -197,7 +218,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                     cursorColor: Colors.black,
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   SizedBox(height: 16.0),
 
                   TextField(
@@ -220,7 +250,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                     cursorColor: Colors.black,
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   SizedBox(height: 16.0),
 
                   DropdownButtonFormField<String>(
@@ -257,7 +296,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text(value),
                       );
                     }).toList(),
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   const SizedBox(height: 16.0),
 
                   TextField(
@@ -277,7 +325,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                     cursorColor: Colors.black,
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   SizedBox(height: 16.0),
 
                   TextField(
@@ -299,7 +356,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
                     cursorColor: Colors.black,
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   SizedBox(height: 16.0),
 
                   DropdownButtonFormField<String>(
@@ -334,7 +400,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text(value),
                       );
                     }).toList(),
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   const SizedBox(height: 16.0),
                   TextField(
                     controller: passwordController,
@@ -354,7 +429,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     obscureText: true,
                     cursorColor: Colors.black,
-                  ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(
+                          duration:
+                              500.ms), // Animación de deslizamiento y fadeIn
                   SizedBox(height: 30.0),
                   ElevatedButton(
                     onPressed: registerUser,
@@ -370,7 +454,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     child: Text('Registrarme',
                         style: TextStyle(color: Colors.white)),
-                  ),
+                  )
+                      .animate()
+                      .scale(delay: 500.ms), // Animación de escala en el botón
                 ],
               ),
             ),
