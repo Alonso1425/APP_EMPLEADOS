@@ -43,7 +43,7 @@ class ComunicadosPage extends StatelessWidget {
     final comunicadosOrdenados = _ordenarComunicadosPorFecha(comunicados);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           'Comunicados Importantes',

@@ -12,6 +12,10 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+  final confirmPasswordController = TextEditingController();
+
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -24,6 +28,14 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController numberemployeeController =
       TextEditingController();
+  //CONTACTO DE EMERGENCIA
+  final TextEditingController contactonombreController =
+      TextEditingController();
+  final TextEditingController domicilioController = TextEditingController();
+  final TextEditingController emergenciaphoneController =
+      TextEditingController();
+  final TextEditingController relacioncontactoController =
+      TextEditingController();
 
   Future<void> registerUser() async {
     if (usernameController.text.isEmpty ||
@@ -34,7 +46,15 @@ class _RegisterPageState extends State<RegisterPage> {
         roluserController.text.isEmpty ||
         phoneController.text.isEmpty ||
         numberemployeeController.text.isEmpty ||
-        passwordController.text.isEmpty) {
+        //CONTACTO DE EMERGENCIA
+        contactonombreController.text.isEmpty ||
+        domicilioController.text.isEmpty ||
+        emergenciaphoneController.text.isEmpty ||
+        relacioncontactoController.text.isEmpty ||
+        //ACCION DE REGISTRAR AL FINAL
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty) {
+      // Validar confirmar contraseña
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -57,8 +77,12 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    if (!validatePasswords()) {
+      return;
+    }
+
     final response = await http.post(
-      Uri.parse('http://192.168.1.67/api/register.php'), //API
+      Uri.parse('http://192.168.1.234/api/register.php'), //API
       body: jsonEncode({
         "username": usernameController.text,
         "paternal_surname": paternalsurnameController.text,
@@ -68,7 +92,14 @@ class _RegisterPageState extends State<RegisterPage> {
         "rol_user": roluserController.text,
         "phone": phoneController.text,
         "number_employee": numberemployeeController.text,
+        //CAMPOS DE CONTACTO DE EMERGENCIA
+        "contacto_nombre": contactonombreController.text,
+        "domicilio": domicilioController.text,
+        "emergencia_phone": emergenciaphoneController.text,
+        "relacion_contacto": relacioncontactoController.text,
+        //CAMPOS DE CONTRASEÑA
         "password": passwordController.text,
+        "confirm_password": confirmPasswordController.text, // Nuevo campo
       }),
       headers: {
         "Content-Type": "application/json",
@@ -87,7 +118,7 @@ class _RegisterPageState extends State<RegisterPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: data['success'] ? Colors.green : Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
@@ -101,9 +132,40 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de Conexión con el Servidor.')),
+        SnackBar(
+          content: Text('Error de Conexión con el Servidor.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
+  }
+
+  bool validatePasswords() {
+    if (passwordController.text != confirmPasswordController.text) {
+      // Mostrar error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Las contraseñas no coinciden.',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return false;
+    }
+    // Las contraseñas coinciden
+    return true;
   }
 
   @override
@@ -270,7 +332,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       });
                     },
                     decoration: InputDecoration(
-                      labelText: 'Área de Trabajo',
+                      labelText: 'Departamento / Área de Trabajo',
                       labelStyle: const TextStyle(color: Colors.black),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
@@ -283,12 +345,22 @@ class _RegisterPageState extends State<RegisterPage> {
                       prefixIcon: const Icon(Icons.people, color: Colors.black),
                       hintStyle: const TextStyle(color: Colors.grey),
                     ),
+                    style: TextStyle(color: Colors.black, fontSize: 15.0),
+                    dropdownColor: Colors.white,
                     items: <String>[
-                      'Producción',
+                      'Administración',
+                      'Responsable de Planta',
                       'Metales',
                       'Inyección',
-                      'Impresión',
+                      'Impresión de Exhibidores',
+                      'Impresión y Corte de Publicicidad',
                       'Almacén',
+                      'Calidad',
+                      'Finanzas',
+                      'Recursos Humanos',
+                      'Diseño',
+                      'Sistemas Informáticos',
+                      'Comunicación y Redes Sociales',
                       'Encargado de Área'
                     ].map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
@@ -389,10 +461,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       prefixIcon: const Icon(Icons.people, color: Colors.black),
                       hintStyle: const TextStyle(color: Colors.grey),
                     ),
+                    style: TextStyle(color: Colors.black, fontSize: 16.0),
+                    dropdownColor: Colors.white,
                     items: <String>[
-                      'Empleado A',
-                      'Empleado B',
-                      'Administrativo',
+                      'Personal de Producción',
+                      'Directivo', //PERMISOS:
+                      'Jefe de Área',
+                      'Gerente de Área',
                       'Supervisor'
                     ].map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
@@ -411,6 +486,158 @@ class _RegisterPageState extends State<RegisterPage> {
                           duration:
                               500.ms), // Animación de deslizamiento y fadeIn
                   const SizedBox(height: 16.0),
+
+                  Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 1.0),
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
+                          padding: EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.contact_emergency,
+                                      color: Colors.red),
+                                  SizedBox(width: 8.0),
+                                  Text('Contacto de Emergencia',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0)),
+                                ],
+                              ),
+                              SizedBox(height: 16.0),
+                              TextField(
+                                controller: contactonombreController,
+                                decoration: InputDecoration(
+                                  labelText: 'Nombre Completo',
+                                  labelStyle: TextStyle(color: Colors.black),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[400]!),
+                                  ),
+                                  prefixIcon:
+                                      Icon(Icons.people, color: Colors.black),
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                ),
+                                cursorColor: Colors.black,
+                              )
+                                  .animate()
+                                  .slideX(
+                                      begin: -1.0,
+                                      end: 0.0,
+                                      duration: 500.ms,
+                                      curve: Curves.easeOut)
+                                  .fadeIn(duration: 500.ms),
+                              SizedBox(height: 16.0),
+                              TextField(
+                                controller: domicilioController,
+                                decoration: InputDecoration(
+                                  labelText: 'Domicilio',
+                                  labelStyle: TextStyle(color: Colors.black),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[400]!),
+                                  ),
+                                  prefixIcon:
+                                      Icon(Icons.map, color: Colors.black),
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                ),
+                                cursorColor: Colors.black,
+                              )
+                                  .animate()
+                                  .slideX(
+                                      begin: -1.0,
+                                      end: 0.0,
+                                      duration: 500.ms,
+                                      curve: Curves.easeOut)
+                                  .fadeIn(duration: 500.ms),
+                              SizedBox(height: 16.0),
+                              TextField(
+                                controller: emergenciaphoneController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                decoration: InputDecoration(
+                                  labelText: 'Número de Teléfono',
+                                  labelStyle: TextStyle(color: Colors.black),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[400]!),
+                                  ),
+                                  prefixIcon:
+                                      Icon(Icons.phone, color: Colors.black),
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                ),
+                                cursorColor: Colors.black,
+                              )
+                                  .animate()
+                                  .slideX(
+                                      begin: -1.0,
+                                      end: 0.0,
+                                      duration: 500.ms,
+                                      curve: Curves.easeOut)
+                                  .fadeIn(
+                                      duration: 500
+                                          .ms), // Animación de deslizamiento y fadeIn
+                              SizedBox(height: 16.0),
+                              TextField(
+                                controller: relacioncontactoController,
+                                decoration: InputDecoration(
+                                  labelText: 'Relación con el Contacto',
+                                  labelStyle: TextStyle(color: Colors.black),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide: BorderSide(color: Colors.black),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[400]!),
+                                  ),
+                                  prefixIcon: Icon(Icons.people_alt,
+                                      color: Colors.black),
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                ),
+                                cursorColor: Colors.black,
+                              )
+                                  .animate()
+                                  .slideX(
+                                      begin: -1.0,
+                                      end: 0.0,
+                                      duration: 500.ms,
+                                      curve: Curves.easeOut)
+                                  .fadeIn(duration: 500.ms),
+                              SizedBox(height: 16.0),
+                            ],
+                          ))
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(duration: 500.ms),
+                  SizedBox(height: 16.0),
+
                   TextField(
                     controller: passwordController,
                     decoration: InputDecoration(
@@ -425,9 +652,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         borderSide: BorderSide(color: Colors.grey[400]!),
                       ),
                       prefixIcon: Icon(Icons.lock, color: Colors.black),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                       hintStyle: TextStyle(color: Colors.grey),
                     ),
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
                     cursorColor: Colors.black,
                   )
                       .animate()
@@ -439,7 +679,42 @@ class _RegisterPageState extends State<RegisterPage> {
                       .fadeIn(
                           duration:
                               500.ms), // Animación de deslizamiento y fadeIn
+                  SizedBox(height: 15.0),
+                  TextField(
+                    controller: confirmPasswordController,
+                    decoration: InputDecoration(
+                      labelText: 'Confirmar Contraseña',
+                      labelStyle: TextStyle(color: Colors.black),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                        borderSide: BorderSide(color: Colors.grey[400]!),
+                      ),
+                      prefixIcon: Icon(Icons.lock, color: Colors.black),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isConfirmPasswordVisible =
+                                !_isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
+                      hintStyle: TextStyle(color: Colors.grey),
+                    ),
+                    obscureText: !_isConfirmPasswordVisible,
+                    cursorColor: Colors.black,
+                  ),
                   SizedBox(height: 30.0),
+
                   ElevatedButton(
                     onPressed: registerUser,
                     style: ElevatedButton.styleFrom(

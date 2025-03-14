@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'home.dart'; // Importa la pantalla de inicio normal
-import 'home_admi.dart'; // Importa la pantalla de administración
+import 'home.dart';
+import 'home_admi.dart';
 import 'register.dart';
 
 class LoginPage extends StatefulWidget {
@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.67/api/login.php'), //API
+      Uri.parse('http://192.168.1.234/api/login.php'), //API
       body: jsonEncode({
         "email": emailController.text,
         "password": passwordController.text,
@@ -61,11 +61,11 @@ class _LoginPageState extends State<LoginPage> {
       String rol = data['rol'] ?? 'Rol';
       String roluser = data['rol_user'] ?? 'Rol Usuario';
 
-      // Validar el rol del usuario
+      // VALIDAMOS EL ROL DE USUARIO
       if (roluser == "Encargados de Área" ||
           roluser == "Administrativo" ||
           rol == "Encargado de Área") {
-        // Redirigir a la pantalla de administración
+        // REDIRIGIMOS A LA PAGINA DE INICIO DE ADMINISTRADOR
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

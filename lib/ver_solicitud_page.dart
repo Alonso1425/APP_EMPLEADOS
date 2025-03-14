@@ -12,33 +12,45 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
   late Animation<Offset> _animation;
   late Animation<double> _fadeAnimation;
 
-  final List<Map<String, dynamic>> solicitudes = [
+  // Datos de ejemplo para el Proceso de Autorización
+  final List<Map<String, dynamic>> procesoAutorizacion = [
     {
-      'nombre': 'Juan Pérez',
-      'cargo': 'Desarrollador',
-      'area': 'TI',
-      'fechaSolicitud': '2023-10-01',
-      'rangoFechas': '01/10/2023 - 05/10/2023',
-      'estado': 'Aprobada',
-      'motivoRechazo': '',
+      'id': 1,
+      'fechaSolicitud': '01/10/2023',
+      'autorizacion1': 'Pendiente',
+      'motivoRechazo1': '',
+      'autorizacion2': 'Aprobada',
+      'motivoRechazo2': '',
     },
     {
-      'nombre': 'Juan Pérez',
-      'cargo': 'Desarrollador',
-      'area': 'TI',
-      'fechaSolicitud': '2023-10-10',
-      'rangoFechas': '10/10/2023 - 15/10/2023',
-      'estado': 'Rechazada',
-      'motivoRechazo': 'No hay suficiente personal disponible.',
+      'id': 2,
+      'fechaSolicitud': '10/10/2023',
+      'autorizacion1': 'Rechazada',
+      'motivoRechazo1': 'No hay suficiente personal disponible.',
+      'autorizacion2': 'Pendiente',
+      'motivoRechazo2': '',
+    },
+  ];
+
+  // Datos de ejemplo para el Historial
+  final List<Map<String, dynamic>> historial = [
+    {
+      'id': 1,
+      'año': 2023,
+      'fechaSolicitud': '01/10/2023',
+      'diasSolicitados': 5,
+      'fechasSolicitadas': '01/10/2023 - 05/10/2023',
+      'diaAutorizacion': '03/10/2023',
+      'rechazo': '',
     },
     {
-      'nombre': 'Juan Pérez',
-      'cargo': 'Desarrollador',
-      'area': 'TI',
-      'fechaSolicitud': '2023-10-20',
-      'rangoFechas': '20/10/2023 - 25/10/2023',
-      'estado': 'Pendiente',
-      'motivoRechazo': '',
+      'id': 2,
+      'año': 2023,
+      'fechaSolicitud': '10/10/2023',
+      'diasSolicitados': 3,
+      'fechasSolicitadas': '10/10/2023 - 12/10/2023',
+      'diaAutorizacion': '11/10/2023',
+      'rechazo': 'No hay suficiente personal disponible.',
     },
   ];
 
@@ -76,7 +88,7 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: FadeTransition(
           opacity: _fadeAnimation,
@@ -91,101 +103,135 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
         backgroundColor: Colors.lightGreen,
         centerTitle: true,
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: solicitudes.length,
-        itemBuilder: (context, index) {
-          return SlideTransition(
-            position: _animation,
-            child: _buildSolicitudCard(solicitudes[index]),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSolicitudCard(Map<String, dynamic> solicitud) {
-    Color estadoColor;
-    switch (solicitud['estado']) {
-      case 'Aprobada':
-        estadoColor = Colors.green;
-        break;
-      case 'Rechazada':
-        estadoColor = Colors.red;
-        break;
-      case 'Pendiente':
-        estadoColor = Colors.orange;
-        break;
-      default:
-        estadoColor = Colors.grey;
-    }
-
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 5.0,
-            spreadRadius: 2.0,
-            offset: Offset(2, 4),
-          ),
-        ],
-      ),
-      child: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow(Icons.person, 'Nombre', solicitud['nombre']),
-            const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.work, 'Cargo', solicitud['cargo']),
-            const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.business, 'Área', solicitud['area']),
-            const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.calendar_today, 'Fecha de Solicitud',
-                solicitud['fechaSolicitud']),
-            const SizedBox(height: 8.0),
-            _buildInfoRow(
-                Icons.date_range, 'Rango de Fechas', solicitud['rangoFechas']),
-            const SizedBox(height: 8.0),
-            Row(
-              children: [
-                Icon(Icons.circle, color: estadoColor, size: 16.0),
-                const SizedBox(width: 8.0),
-                Text(
-                  'Estado: ',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.teal[800],
-                  ),
-                ),
-                Text(
-                  solicitud['estado'],
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color: estadoColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            // Sección: Proceso de Autorización
+            Text(
+              'Estatus / Historial de Solicitud de Vacaciones',
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal[800],
+              ),
+              textAlign: TextAlign.center,
             ),
-            if (solicitud['estado'] == 'Rechazada') ...[
-              const SizedBox(height: 8.0),
-              _buildInfoRow(Icons.warning, 'Motivo de Rechazo',
-                  solicitud['motivoRechazo']),
-            ],
+            const SizedBox(height: 16.0),
+            if (procesoAutorizacion.isEmpty)
+              Center(
+                child: Text(
+                  'No hay solicitudes de autorización por mostrar.',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.grey,
+                  ),
+                ),
+              )
+            else
+              ...procesoAutorizacion.map((solicitud) {
+                return SlideTransition(
+                  position: _animation,
+                  child: _buildProcesoAutorizacionCard(solicitud),
+                );
+              }).toList(),
+
+            const SizedBox(height: 32.0),
+
+            // Sección: Historial
+            Text(
+              'Historial',
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal[800],
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            ...historial.map((solicitud) {
+              return SlideTransition(
+                position: _animation,
+                child: _buildHistorialCard(solicitud),
+              );
+            }).toList(),
           ],
         ),
       ),
     );
   }
 
+  // Tarjeta para el Proceso de Autorización
+  Widget _buildProcesoAutorizacionCard(Map<String, dynamic> solicitud) {
+    return Card(
+      color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 16.0),
+      elevation: 5.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoRow(Icons.confirmation_number, 'No. Solicitud',
+                solicitud['id'].toString()),
+            const SizedBox(height: 8.0),
+            _buildInfoRow(Icons.calendar_today, 'Fecha de Solicitud',
+                solicitud['fechaSolicitud']),
+            const SizedBox(height: 8.0),
+            _buildAutorizacionRow('Autorización 1', solicitud['autorizacion1'],
+                solicitud['motivoRechazo1']),
+            const SizedBox(height: 8.0),
+            _buildAutorizacionRow('Autorización 2', solicitud['autorizacion2'],
+                solicitud['motivoRechazo2']),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Tarjeta para el Historial
+  Widget _buildHistorialCard(Map<String, dynamic> solicitud) {
+    return Card(
+      color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 16.0),
+      elevation: 5.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoRow(Icons.confirmation_number, 'No. Solicitud',
+                solicitud['id'].toString()),
+            const SizedBox(height: 8.0),
+            _buildInfoRow(
+                Icons.calendar_today, 'Año', solicitud['año'].toString()),
+            const SizedBox(height: 8.0),
+            _buildInfoRow(Icons.date_range, 'Fecha de Solicitud',
+                solicitud['fechaSolicitud']),
+            const SizedBox(height: 8.0),
+            _buildInfoRow(Icons.timelapse, 'Días solicitados',
+                solicitud['diasSolicitados'].toString()),
+            const SizedBox(height: 8.0),
+            _buildInfoRow(Icons.calendar_view_day, 'Fechas solicitadas',
+                solicitud['fechasSolicitadas']),
+            const SizedBox(height: 8.0),
+            _buildInfoRow(Icons.event_available, 'Día de Autorización',
+                solicitud['diaAutorizacion']),
+            if (solicitud['rechazo'] != null && solicitud['rechazo'].isNotEmpty)
+              _buildInfoRow(Icons.warning, 'Rechazo', solicitud['rechazo']),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Método para construir una fila de información
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,6 +260,67 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  // Método para construir una fila de autorización
+  Widget _buildAutorizacionRow(
+      String label, String status, String motivoRechazo) {
+    Color statusColor;
+    switch (status) {
+      case 'Aprobada':
+        statusColor = Colors.green;
+        break;
+      case 'Rechazada':
+        statusColor = Colors.red;
+        break;
+      case 'Pendiente':
+        statusColor = Colors.orange;
+        break;
+      default:
+        statusColor = Colors.grey;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.verified_user, color: Colors.teal[800], size: 20.0),
+            const SizedBox(width: 8.0),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal[800],
+              ),
+            ),
+            const SizedBox(width: 8.0),
+            Icon(Icons.circle, color: statusColor, size: 16.0),
+            const SizedBox(width: 4.0),
+            Text(
+              status,
+              style: TextStyle(
+                fontSize: 16.0,
+                color: statusColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        if (motivoRechazo.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 28.0, top: 4.0),
+            child: Text(
+              'Motivo: $motivoRechazo',
+              style: TextStyle(
+                fontSize: 14.0,
+                color: Colors.red,
+              ),
+            ),
+          ),
       ],
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ConfidencialPage extends StatefulWidget {
   const ConfidencialPage({super.key});
@@ -10,29 +10,71 @@ class ConfidencialPage extends StatefulWidget {
 
 class _ConfidencialPageState extends State<ConfidencialPage> {
   final TextEditingController _mensajeController = TextEditingController();
-  String _categoria = 'Denuncia'; // Valor por defecto
-  final DateTime _fecha = DateTime.now(); // Fecha actual
+  final TextEditingController _mensajeDenunciaController =
+      TextEditingController();
+  String? _categoria;
+  bool _mostrarCamposAdicionales = false;
 
+  final DateTime _fecha = DateTime.now();
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showInformativeDialog();
+    });
+  }
+
+  void _showInformativeDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text("Información Importante",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(
+              "Recuerda que cualquier denuncia realizada en esta sección es completamente confidencial y únicamente será enviada al área de Recursos Humanos y a la Dirección General de la empresa.",
+              style: TextStyle(fontSize: 15)),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cerrar",
+                  style: TextStyle(
+                      color: Colors.orange[900], fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   // Función para manejar el envío del formulario
   void _enviarFormulario() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Aquí puedes agregar la lógica para enviar la denuncia/queja/sugerencia
+      _resetFields();
       // Si es necesario, conecta con la base de datos o una API para guardar la información.
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+            backgroundColor: Colors.white,
             title: Text("Envío exitoso",
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            content: Text("Tu mensaje fue enviado correctamente."),
+            content: Text(
+                "Tu mensaje fue enviado correctamente para poder ser revisado por nuestro equipo correspondiente."),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text("OK"),
+                child: Text("Cerrar",
+                    style: TextStyle(
+                        color: Colors.orange[900],
+                        fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -41,19 +83,35 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
     }
   }
 
+  void _resetFields() {
+    _mensajeController.clear();
+    _mensajeDenunciaController.clear();
+    setState(() {
+      _categoria = null;
+      _mostrarCamposAdicionales = false;
+    });
+  }
+
+  void _actualizarCategoria(String? newValue) {
+    setState(() {
+      _categoria = newValue;
+      _mostrarCamposAdicionales = _categoria == 'Denuncia';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text('Confidencialidad',
+        title: Text('Acércate',
                 style:
                     TextStyle(fontWeight: FontWeight.bold, color: Colors.white))
             .animate()
-            .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
+            .fadeIn(duration: 500.ms),
         centerTitle: true,
         backgroundColor: Colors.blueGrey[600],
-        elevation: 4, // Ligera sombra para darle profundidad
+        elevation: 4,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -65,13 +123,13 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
               children: [
                 Center(
                   child: Text(
-                    'Envía tu Feedback',
+                    'Envía Denuncia o Sugerencia',
                     style: TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
-                  ).animate().fadeIn(duration: 500.ms), // Animación de fadeIn
+                  ).animate().fadeIn(duration: 500.ms),
                 ),
                 const SizedBox(height: 20.0),
                 // Campo de fecha (automático)
@@ -84,7 +142,7 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                     decoration:
                         _buildInputDecoration('Fecha', Icons.calendar_today),
                     readOnly: true,
-                    enabled: false, // Deshabilitado ya que es automático
+                    enabled: false,
                   ),
                 )
                     .animate()
@@ -93,9 +151,7 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                         end: 0.0,
                         duration: 500.ms,
                         curve: Curves.easeOut)
-                    .fadeIn(
-                        duration:
-                            500.ms), // Animación de deslizamiento y fadeIn
+                    .fadeIn(duration: 500.ms),
                 SizedBox(height: 20),
 
                 // Campo de categoría
@@ -112,11 +168,7 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                             style: TextStyle(fontWeight: FontWeight.w500)),
                       );
                     }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _categoria = newValue!;
-                      });
-                    },
+                    onChanged: _actualizarCategoria,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Selecciona una categoría';
@@ -138,41 +190,163 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                         end: 0.0,
                         duration: 500.ms,
                         curve: Curves.easeOut)
-                    .fadeIn(
-                        duration:
-                            500.ms), // Animación de deslizamiento y fadeIn
+                    .fadeIn(duration: 500.ms),
                 SizedBox(height: 20),
 
-                // Campo de mensaje
-                _buildStyledContainer(
-                  child: TextFormField(
-                    controller: _mensajeController,
-                    decoration: _buildInputDecoration('Mensaje', Icons.message),
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingresa tu mensaje';
-                      }
-                      return null;
-                    },
+                // Campos adicionales para "Denuncia"
+                Visibility(
+                  visible: _mostrarCamposAdicionales,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      _buildStyledContainer(
+                        child: TextFormField(
+                          decoration: _buildInputDecoration(
+                              'Fecha en la que sucedió', Icons.date_range),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese la fecha';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      _buildStyledContainer(
+                        child: DropdownButtonFormField<String>(
+                          dropdownColor: Colors.white,
+                          borderRadius: BorderRadius.circular(15.0),
+                          decoration:
+                              _buildInputDecoration('Área', Icons.location_on),
+                          items: <String>[
+                            'Inyección',
+                            'Álmacen',
+                            'Metales',
+                            'Impresión',
+                            'Corte',
+                            'Serigrafia',
+                            'Comedor',
+                            'Baños',
+                            'Oficina'
+                          ].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w500)),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              // Actualiza el área seleccionada aquí
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Seleccione un área';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      _buildStyledContainer(
+                        child: TextFormField(
+                          decoration: _buildInputDecoration(
+                              'Hora Aproximada', Icons.access_time),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese la hora aproximada';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      _buildStyledContainer(
+                        child: TextFormField(
+                          decoration: _buildInputDecoration(
+                              'Personas involucradas', Icons.person),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese los nombres de las personas involucradas';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      // Campo de mensaje para la denuncia
+                      _buildStyledContainer(
+                        child: TextFormField(
+                          controller: _mensajeDenunciaController,
+                          decoration: InputDecoration(
+                            labelText: 'Mensaje',
+                            icon: Icon(Icons.message, color: Colors.red),
+                            labelStyle: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            hintText:
+                                'Ménciona detalladamente el lugar y el suceso ocurrido. En caso de tener testigos, por favor propórciona sus nombres',
+                            hintStyle: TextStyle(
+                              color: Colors.grey[600],
+                              fontStyle: FontStyle.italic,
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 16),
+                          ),
+                          maxLines: 4,
+                          validator: (value) {
+                            if (_mostrarCamposAdicionales &&
+                                (value == null || value.isEmpty)) {
+                              return 'Por favor, detalla el suceso';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                    ],
                   ),
-                )
-                    .animate()
-                    .slideX(
-                        begin: -1.0,
-                        end: 0.0,
-                        duration: 500.ms,
-                        curve: Curves.easeOut)
-                    .fadeIn(
-                        duration:
-                            500.ms), // Animación de deslizamiento y fadeIn
+                ),
+
+                // Campo de mensaje (se oculta si es "Denuncia")
+                Visibility(
+                  visible: !_mostrarCamposAdicionales,
+                  child: _buildStyledContainer(
+                    child: TextFormField(
+                      controller: _mensajeController,
+                      decoration:
+                          _buildInputDecoration('Mensaje', Icons.message),
+                      maxLines: 4,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa tu mensaje';
+                        }
+                        return null;
+                      },
+                    ),
+                  )
+                      .animate()
+                      .slideX(
+                          begin: -1.0,
+                          end: 0.0,
+                          duration: 500.ms,
+                          curve: Curves.easeOut)
+                      .fadeIn(duration: 500.ms),
+                ),
                 SizedBox(height: 20),
 
                 // Botón de enviar
                 ElevatedButton(
                   onPressed: _enviarFormulario,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightGreen[900],
+                    backgroundColor: Colors.lightGreen[700],
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                     textStyle:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -184,9 +358,7 @@ class _ConfidencialPageState extends State<ConfidencialPage> {
                     'Enviar',
                     style: TextStyle(color: Colors.white),
                   ),
-                )
-                    .animate()
-                    .scale(delay: 500.ms), // Animación de escala en el botón
+                ).animate().scale(delay: 500.ms),
               ],
             ),
           ),
@@ -210,9 +382,9 @@ Container _buildStyledContainer({required Widget child}) {
         ),
       ],
     ),
-    padding:
-        EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Espacio mejorado
-    margin: EdgeInsets.only(bottom: 15), // Espacio entre campos
+    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    margin: EdgeInsets.only(bottom: 15),
+    clipBehavior: Clip.antiAlias,
     child: child,
   );
 }
@@ -225,14 +397,13 @@ InputDecoration _buildInputDecoration(String labelText, IconData icon) {
       fontWeight: FontWeight.bold,
     ),
     prefixIcon: Padding(
-      padding: EdgeInsets.all(8.0), // Espacio para el ícono
+      padding: EdgeInsets.all(8.0),
       child: Icon(icon, color: Colors.red),
     ),
     border: OutlineInputBorder(
       borderSide: BorderSide.none,
       borderRadius: BorderRadius.circular(15),
     ),
-    contentPadding: EdgeInsets.symmetric(
-        horizontal: 20, vertical: 16), // Espacio dentro del campo
+    contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
   );
 }

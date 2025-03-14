@@ -34,12 +34,9 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
 
     //INICIALIZAMOS LAS PÁGINAS
     _widgetOptions.addAll([
-      //COMUNICADOS ADMIN - INDICE = 0
-      ComunicadosAdmiPage(),
+      ComunicadosAdmiPage(username: widget.username),
       AdminVacacionesPage(),
       ConfidencialAdminPage(),
-      //VER SOLICITUD DE VACACIONES ADMIN - INDICE = 1
-      //CONFIDENCIAL ADMIN - INDICE = 2
     ]);
   }
 
@@ -166,7 +163,7 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
             ListTile(
               leading: Icon(Icons.privacy_tip_outlined, color: Colors.blueGrey),
               title: Text(
-                'Ver Confidencialidad',
+                'Acércate',
                 style: TextStyle(fontSize: 18),
               ),
               onTap: () {
@@ -203,7 +200,7 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.privacy_tip_outlined),
-            label: 'Ver Confidencialidad',
+            label: 'Acércate',
           ),
         ],
         currentIndex: _selectedIndex,

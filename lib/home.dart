@@ -1,3 +1,6 @@
+import 'package:empleados_app/aviso_privacidad_page.dart';
+import 'package:empleados_app/codigo_etica_page.dart';
+import 'package:empleados_app/solicitud_emergencia_page.dart';
 import 'package:flutter/material.dart';
 import 'comunicados_page.dart';
 import 'solicitud_vacaciones_page.dart';
@@ -40,8 +43,15 @@ class _HomePageState extends State<HomePage> {
         rol: widget.rol,
         roluser: widget.roluser,
       ), // Índice 1
-      VerSolicitudPage(), // Índice 2
-      ConfidencialPage(), // Índice 3
+      SolicitudEmergenciaPage(
+        username: widget.username,
+        rol: widget.rol,
+        roluser: widget.roluser,
+      ), // Índice 2
+      VerSolicitudPage(), // Índice 3
+      ConfidencialPage(), // Índice 4
+      AvisoPrivacidadPage(), // Índice 5
+      CodigoEticaPage(), // Índice 6
     ]);
   }
 
@@ -97,6 +107,41 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Método para construir los ítems de la barra de navegación
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    return InkWell(
+      onTap: () {
+        _onItemTapped(index);
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 2.0),
+        decoration: BoxDecoration(
+          color:
+              _selectedIndex == index ? Colors.blue[800] : Colors.transparent,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 19,
+              color: _selectedIndex == index ? Colors.white : Colors.black,
+            ),
+            SizedBox(height: 2.0),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: _selectedIndex == index ? Colors.white : Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,7 +168,7 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             UserAccountsDrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blueGrey,
+                color: Colors.blueGrey[800],
               ),
               accountName: Text(
                 widget.username,
@@ -142,8 +187,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             ListTile(
-              leading:
-                  Icon(Icons.announcement_outlined, color: Colors.blueGrey),
+              leading: Icon(Icons.announcement_outlined, color: Colors.orange),
               title: Text(
                 'Comunicados Importantes',
                 style: TextStyle(fontSize: 18),
@@ -155,7 +199,7 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading:
-                  Icon(Icons.beach_access_outlined, color: Colors.blueGrey),
+                  Icon(Icons.beach_access_outlined, color: Colors.lightGreen),
               title: Text(
                 'Solicitud de Vacaciones',
                 style: TextStyle(fontSize: 18),
@@ -166,9 +210,9 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.list_alt_outlined, color: Colors.blueGrey),
+              leading: Icon(Icons.emergency, color: Colors.red),
               title: Text(
-                'Ver Solicitud',
+                'Solicitud de Vacaciones de Emergencia',
                 style: TextStyle(fontSize: 18),
               ),
               onTap: () {
@@ -177,13 +221,47 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.privacy_tip_outlined, color: Colors.blueGrey),
+              leading: Icon(Icons.list_alt_outlined, color: Colors.blueAccent),
               title: Text(
-                'Confidencialidad',
+                'Estatus / Historial de Solicitud de Vacaciones',
                 style: TextStyle(fontSize: 18),
               ),
               onTap: () {
                 _onItemTapped(3); // Índice 3
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading:
+                  Icon(Icons.record_voice_over, color: Colors.blueGrey[900]),
+              title: Text(
+                'Acércate',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                _onItemTapped(4); // Índice 4
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.security, color: Colors.deepOrange),
+              title: Text(
+                'Aviso de Privacidad',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                _onItemTapped(5); // Índice 5
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.handshake, color: Colors.indigo[900]),
+              title: Text(
+                'Código de Ética',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                _onItemTapped(6); // Índice 6
                 Navigator.pop(context);
               },
             ),
@@ -204,32 +282,24 @@ class _HomePageState extends State<HomePage> {
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.announcement),
-            label: 'Comunicados',
+      bottomNavigationBar: BottomAppBar(
+        height: 65,
+        color: Colors.lightBlue,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavItem(Icons.announcement, 'Comunicados', 0),
+              _buildNavItem(Icons.beach_access, 'Vacaciones', 1),
+              _buildNavItem(Icons.emergency, 'Emergencia', 2),
+              _buildNavItem(Icons.list_alt, 'Ver Solicitud', 3),
+              _buildNavItem(Icons.record_voice_over, 'Acércate', 4),
+              _buildNavItem(Icons.security, 'Aviso de Privacidad', 5),
+              _buildNavItem(Icons.handshake, 'Código de Ética', 6),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.beach_access),
-            label: 'Vacaciones',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Ver Solicitud',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.report_gmailerrorred),
-            label: 'Confidencial',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.black,
-        selectedLabelStyle: TextStyle(fontSize: 12.0),
-        backgroundColor: Colors.lightBlue,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
+        ),
       ),
     );
   }

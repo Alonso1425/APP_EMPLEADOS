@@ -1,50 +1,101 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ComunicadosAdmiPage extends StatefulWidget {
-  const ComunicadosAdmiPage({super.key});
+  final String username;
+
+  const ComunicadosAdmiPage({super.key, required this.username});
 
   @override
   _ComunicadosAdmiPageState createState() => _ComunicadosAdmiPageState();
 }
 
 class _ComunicadosAdmiPageState extends State<ComunicadosAdmiPage> {
-  final List<Map<String, String>> comunicadosadmi = [
-    {
-      'titulo': 'Mantenimiento del Sistema',
-      'contenido':
-          'El sistema estará fuera de servicio este viernes de 2:00 PM a 6:00 PM.',
-      'imagen': 'assets/img/Muestra2.jpg',
-      'fecha': '2025-01-31',
-      'usuario': 'Jorge Alberto',
-    },
-    {
-      'titulo': 'Reunión General',
-      'contenido':
-          'Habrá una reunión general el próximo lunes en la sala de conferencias.',
-      'imagen': 'assets/img/Muestra.jpg',
-      'fecha': '2025-01-30',
-      'usuario': 'Araceli',
-    },
-  ];
-
+  final TextEditingController usernameController = TextEditingController();
+  List<Map<String, dynamic>> comunicadosadmi = [];
   final ImagePicker _picker = ImagePicker();
+  File? _image;
+  bool isLoading = true;
 
-  void _addComunicado(Map<String, String> newComunicado) {
-    setState(() {
-      comunicadosadmi.add(newComunicado);
+  @override
+  void initState() {
+    super.initState();
+    fetchComunicados().then((comunicados) {
+      setState(() {
+        comunicadosadmi = comunicados;
+        isLoading = false;
+      });
+    }).catchError((error) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error al obtener los comunicados: $error');
     });
+  }
+
+  Future<void> _loadComunicados() async {
+    final comunicados = await fetchComunicados();
+    setState(() {
+      comunicadosadmi = comunicados;
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchComunicados() async {
+    final response = await http.get(Uri.parse(
+        'http://192.168.1.149/api/comunicados/obtener_comunicados.php'));
+
+    if (response.statusCode == 200) {
+      if (response.body.isNotEmpty) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'success') {
+          return List<Map<String, dynamic>>.from(data['data']);
+        } else {
+          throw Exception(
+              'Error al cargar los comunicados: ${data['message']}');
+        }
+      } else {
+        throw Exception('Respuesta vacía del servidor');
+      }
+    } else {
+      throw Exception('Error al conectar con el servidor');
+    }
+  }
+
+  Future<void> addComunicado(Map<String, String> newComunicado) async {
+    final response = await http.post(
+      Uri.parse('http://192.168.1.149/api/comunicados/crear_comunicado.php'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(newComunicado),
+    );
+
+    if (response.statusCode == 200) {
+      print('Comunicado agregado con éxito');
+    } else {
+      throw Exception('Error al agregar el comunicado');
+    }
+  }
+
+  void _addComunicado(Map<String, String> newComunicado) async {
+    await addComunicado(newComunicado);
+    _loadComunicados();
   }
 
   void _navigateToAddComunicado() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddComunicadoForm(),
+        builder: (context) => AddComunicadoForm(
+          username: widget.username,
+        ),
       ),
     );
 
@@ -53,8 +104,7 @@ class _ComunicadosAdmiPageState extends State<ComunicadosAdmiPage> {
     }
   }
 
-  // Función para ordenar los comunicados por fecha (del más reciente al más antiguo)
-  List<Map<String, String>> _ordenarComunicadosPorFecha() {
+  List<Map<String, dynamic>> _ordenarComunicadosPorFecha() {
     return comunicadosadmi
       ..sort((a, b) {
         final fechaA = DateTime.parse(a['fecha']!);
@@ -65,7 +115,6 @@ class _ComunicadosAdmiPageState extends State<ComunicadosAdmiPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Ordenar los comunicados antes de mostrarlos
     final comunicadosOrdenados = _ordenarComunicadosPorFecha();
 
     return Scaffold(
@@ -78,70 +127,71 @@ class _ComunicadosAdmiPageState extends State<ComunicadosAdmiPage> {
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
-        )
-            .animate()
-            .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
+        ).animate().fadeIn(duration: 500.ms),
         backgroundColor: Colors.yellow[900],
         centerTitle: true,
       ),
-      body: ListView.builder(
-        itemCount: comunicadosOrdenados.length,
-        padding: const EdgeInsets.all(8.0),
-        itemBuilder: (context, index) {
-          final comunicado = comunicadosOrdenados[index];
-          return Card(
-            color: Colors.white,
-            elevation: 5,
-            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    comunicado['titulo']!,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
-                    ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(color: Colors.blueGrey[600]))
+          : ListView.builder(
+              itemCount: comunicadosOrdenados.length,
+              padding: const EdgeInsets.all(8.0),
+              itemBuilder: (context, index) {
+                final comunicado = comunicadosOrdenados[index];
+                return Card(
+                  color: Colors.white,
+                  elevation: 5,
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 10.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
                   ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    comunicado['contenido']!,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10.0),
-                  Text(
-                    'Publicado por: ${comunicado['usuario']}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.blueGrey,
-                    ),
-                  ),
-                  const SizedBox(height: 10.0),
-                  comunicado['imagen']!.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ImageViewer(
-                                  imageUrls: [comunicado['imagen']!],
-                                ),
-                              ),
-                            );
-                          },
-                          child: comunicado['imagen']!.startsWith('assets/')
-                              ? Image.asset(comunicado['imagen']!)
-                              : Image.network(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          comunicado['titulo']!,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          comunicado['contenido']!,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        Text(
+                          'Publicado por: ${comunicado['usuario']}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        comunicado['imagen'] != null &&
+                                comunicado['imagen'].isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ImageViewer(
+                                        imageUrls: [comunicado['imagen']!],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Image.network(
                                   comunicado['imagen']!,
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Text(
@@ -152,41 +202,45 @@ class _ComunicadosAdmiPageState extends State<ComunicadosAdmiPage> {
                                     );
                                   },
                                 ),
-                        )
-                      : const SizedBox.shrink(),
-                  const SizedBox(height: 10.0),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      comunicado['fecha']!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.blueGrey,
-                      ),
+                              )
+                            : const SizedBox.shrink(),
+                        const SizedBox(height: 10.0),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            comunicado['fecha']!,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                )
+                    .animate()
+                    .slideX(
+                        begin: 1.0,
+                        end: 0.0,
+                        duration: 500.ms,
+                        curve: Curves.easeOut)
+                    .fadeIn(duration: 500.ms);
+              },
             ),
-          )
-              .animate()
-              .slideX(
-                  begin: 1.0, end: 0.0, duration: 500.ms, curve: Curves.easeOut)
-              .fadeIn(duration: 500.ms); // Animación de deslizamiento y fadeIn
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddComunicado,
         backgroundColor: Colors.green,
         child: const Icon(Icons.add, color: Colors.white),
-      ).animate().scale(delay: 500.ms), // Animación de escala en el botón
+      ).animate().scale(delay: 500.ms),
     );
   }
 }
 
 class AddComunicadoForm extends StatefulWidget {
-  const AddComunicadoForm({super.key});
+  final String username;
+  const AddComunicadoForm({super.key, required this.username});
 
   @override
   _AddComunicadoFormState createState() => _AddComunicadoFormState();
@@ -196,6 +250,7 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
   final _formKey = GlobalKey<FormState>();
   final _tituloController = TextEditingController();
   final _contenidoController = TextEditingController();
+  final username = TextEditingController();
   File? _image;
 
   Future<void> _pickImage() async {
@@ -251,9 +306,7 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
-        )
-            .animate()
-            .fadeIn(duration: 500.ms), // Animación de fadeIn en el título
+        ).animate().fadeIn(duration: 500.ms),
         backgroundColor: Colors.yellow[900],
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -264,7 +317,6 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
           key: _formKey,
           child: ListView(
             children: [
-              // Campo de Título
               TextFormField(
                 controller: _tituloController,
                 decoration: InputDecoration(
@@ -296,11 +348,8 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                       end: 0.0,
                       duration: 500.ms,
                       curve: Curves.easeOut)
-                  .fadeIn(
-                      duration: 500.ms), // Animación de deslizamiento y fadeIn
+                  .fadeIn(duration: 500.ms),
               const SizedBox(height: 20),
-
-              // Campo de Contenido
               TextFormField(
                 controller: _contenidoController,
                 decoration: InputDecoration(
@@ -334,11 +383,8 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                       end: 0.0,
                       duration: 500.ms,
                       curve: Curves.easeOut)
-                  .fadeIn(
-                      duration: 500.ms), // Animación de deslizamiento y fadeIn
+                  .fadeIn(duration: 500.ms),
               const SizedBox(height: 20),
-
-              // Campo de Fecha (automático)
               TextFormField(
                 readOnly: true,
                 decoration: InputDecoration(
@@ -365,11 +411,8 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                       end: 0.0,
                       duration: 500.ms,
                       curve: Curves.easeOut)
-                  .fadeIn(
-                      duration: 500.ms), // Animación de deslizamiento y fadeIn
+                  .fadeIn(duration: 500.ms),
               const SizedBox(height: 20),
-
-              // Selección de Imagen
               _image == null
                   ? ElevatedButton.icon(
                       onPressed: _pickImage,
@@ -430,12 +473,8 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                           end: 0.0,
                           duration: 500.ms,
                           curve: Curves.easeOut)
-                      .fadeIn(
-                          duration:
-                              500.ms), // Animación de deslizamiento y fadeIn
+                      .fadeIn(duration: 500.ms),
               const SizedBox(height: 20),
-
-              // Botón de Publicar
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -444,10 +483,10 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                       'contenido': _contenidoController.text,
                       'imagen': _image?.path ?? '',
                       'fecha': _formatDate(DateTime.now()),
-                      'usuario': 'Usuario Actual', // Simulación del usuario
+                      'usuario': widget.username, // Simulación del usuario
                     };
                     Navigator.pop(context, newComunicado);
-                    _showConfirmation(); // Mostrar mensaje de confirmación
+                    _showConfirmation();
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -472,8 +511,7 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                       end: 0.0,
                       duration: 500.ms,
                       curve: Curves.easeOut)
-                  .fadeIn(
-                      duration: 500.ms), // Animación de deslizamiento y fadeIn
+                  .fadeIn(duration: 500.ms),
               const SizedBox(height: 20),
             ],
           ),
@@ -484,7 +522,7 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
 }
 
 class ImageViewer extends StatelessWidget {
-  final List<String> imageUrls;
+  final List<Uint8List> imageUrls;
   final int initialIndex;
 
   const ImageViewer(
@@ -497,9 +535,7 @@ class ImageViewer extends StatelessWidget {
         itemCount: imageUrls.length,
         builder: (context, index) {
           return PhotoViewGalleryPageOptions(
-            imageProvider: imageUrls[index].startsWith('assets/')
-                ? AssetImage(imageUrls[index])
-                : NetworkImage(imageUrls[index]) as ImageProvider,
+            imageProvider: NetworkImage(imageUrls[index] as String),
             initialScale: PhotoViewComputedScale.contained,
             minScale: PhotoViewComputedScale.contained * 0.8,
             maxScale: PhotoViewComputedScale.covered * 1.5,
