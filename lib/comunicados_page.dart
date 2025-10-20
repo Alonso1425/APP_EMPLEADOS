@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ComunicadosPage extends StatelessWidget {
-  const ComunicadosPage({super.key});
+  const ComunicadosPage({super.key, required String userId});
 
   // Función para ordenar los comunicados por fecha (del más reciente al más antiguo)
   List<Map<String, String>> _ordenarComunicadosPorFecha(
@@ -39,7 +41,7 @@ class ComunicadosPage extends StatelessWidget {
       },
     ];
 
-    // Ordenar los comunicados antes de mostrarlos
+    //Ordenar los comunicados antes de mostrarlos
     final comunicadosOrdenados = _ordenarComunicadosPorFecha(comunicados);
 
     return Scaffold(

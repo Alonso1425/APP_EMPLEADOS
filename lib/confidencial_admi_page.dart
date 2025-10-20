@@ -32,7 +32,7 @@ class ConfidencialAdminPage extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
-          'Mensajes Confidenciales',
+          'Acércate',
           style:
               const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ).animate().fadeIn(duration: 600.ms).slideY(

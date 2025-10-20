@@ -1,7 +1,19 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/animation.dart';
+import 'package:http/http.dart' as http;
 
 class VerSolicitudPage extends StatefulWidget {
+  final String userId;
+  final String username;
+  final String rol;
+  final String roluser;
+  const VerSolicitudPage({
+    super.key,
+    required this.userId,
+    this.username = '',
+    this.rol = '',
+    this.roluser = '',
+  });
   @override
   _VerSolicitudPageState createState() => _VerSolicitudPageState();
 }
@@ -12,55 +24,18 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
   late Animation<Offset> _animation;
   late Animation<double> _fadeAnimation;
 
-  // Datos de ejemplo para el Proceso de Autorización
-  final List<Map<String, dynamic>> procesoAutorizacion = [
-    {
-      'id': 1,
-      'fechaSolicitud': '01/10/2023',
-      'autorizacion1': 'Pendiente',
-      'motivoRechazo1': '',
-      'autorizacion2': 'Aprobada',
-      'motivoRechazo2': '',
-    },
-    {
-      'id': 2,
-      'fechaSolicitud': '10/10/2023',
-      'autorizacion1': 'Rechazada',
-      'motivoRechazo1': 'No hay suficiente personal disponible.',
-      'autorizacion2': 'Pendiente',
-      'motivoRechazo2': '',
-    },
-  ];
-
-  // Datos de ejemplo para el Historial
-  final List<Map<String, dynamic>> historial = [
-    {
-      'id': 1,
-      'año': 2023,
-      'fechaSolicitud': '01/10/2023',
-      'diasSolicitados': 5,
-      'fechasSolicitadas': '01/10/2023 - 05/10/2023',
-      'diaAutorizacion': '03/10/2023',
-      'rechazo': '',
-    },
-    {
-      'id': 2,
-      'año': 2023,
-      'fechaSolicitud': '10/10/2023',
-      'diasSolicitados': 3,
-      'fechasSolicitadas': '10/10/2023 - 12/10/2023',
-      'diaAutorizacion': '11/10/2023',
-      'rechazo': 'No hay suficiente personal disponible.',
-    },
-  ];
+  List<Map<String, dynamic>> solicitudes = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 700),
       vsync: this,
     );
+
     _animation = Tween<Offset>(
       begin: Offset(0.0, 1.0),
       end: Offset.zero,
@@ -68,6 +43,7 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
       parent: _controller,
       curve: Curves.easeOut,
     ));
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -77,6 +53,41 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
     ));
 
     _controller.forward();
+
+    fetchSolicitudes();
+  }
+
+  Future<void> fetchSolicitudes() async {
+    final url = Uri.parse(
+        'http://192.168.1.99/api/vacaciones/obtener_solicitud_vacaciones.php');
+    final headers = {'Content-Type': 'application/json'};
+    final body = jsonEncode({'user_id': widget.userId});
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          solicitudes =
+              List<Map<String, dynamic>>.from(data['solicitudes'] ?? []);
+        });
+        //print('Solicitudes obtenidas: $solicitudes');
+        isLoading = false;
+      } else {
+        throw Exception('Error en la solicitud: ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Error al obtener las solicitudes: $e');
+    }
+  }
+
+  String _formatFechaSolicitud(String fecha) {
+    try {
+      final date = DateTime.parse(fecha);
+      return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+    } catch (e) {
+      return fecha;
+    }
   }
 
   @override
@@ -103,66 +114,43 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
         backgroundColor: Colors.lightGreen,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Sección: Proceso de Autorización
-            Text(
-              'Estatus / Historial de Solicitud de Vacaciones',
-              style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal[800],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16.0),
-            if (procesoAutorizacion.isEmpty)
-              Center(
-                child: Text(
-                  'No hay solicitudes de autorización por mostrar.',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color: Colors.grey,
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : solicitudes.isEmpty
+              ? Center(
+                  child: Text(
+                    'No hay solicitudes para mostrar.',
+                    style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Estatus / Historial de Solicitud de Vacaciones',
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal[800],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 16.0),
+                      ...solicitudes
+                          .map((solicitud) => SlideTransition(
+                                position: _animation,
+                                child: _buildSolicitudCard(solicitud),
+                              ))
+                          .toList(),
+                    ],
                   ),
                 ),
-              )
-            else
-              ...procesoAutorizacion.map((solicitud) {
-                return SlideTransition(
-                  position: _animation,
-                  child: _buildProcesoAutorizacionCard(solicitud),
-                );
-              }).toList(),
-
-            const SizedBox(height: 32.0),
-
-            // Sección: Historial
-            Text(
-              'Historial',
-              style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal[800],
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            ...historial.map((solicitud) {
-              return SlideTransition(
-                position: _animation,
-                child: _buildHistorialCard(solicitud),
-              );
-            }).toList(),
-          ],
-        ),
-      ),
     );
   }
 
-  // Tarjeta para el Proceso de Autorización
-  Widget _buildProcesoAutorizacionCard(Map<String, dynamic> solicitud) {
+  Widget _buildSolicitudCard(Map<String, dynamic> solicitud) {
     return Card(
       color: Colors.white,
       margin: const EdgeInsets.only(bottom: 16.0),
@@ -175,63 +163,29 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow(Icons.confirmation_number, 'No. Solicitud',
-                solicitud['id'].toString()),
-            const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.calendar_today, 'Fecha de Solicitud',
-                solicitud['fechaSolicitud']),
-            const SizedBox(height: 8.0),
-            _buildAutorizacionRow('Autorización 1', solicitud['autorizacion1'],
-                solicitud['motivoRechazo1']),
-            const SizedBox(height: 8.0),
-            _buildAutorizacionRow('Autorización 2', solicitud['autorizacion2'],
-                solicitud['motivoRechazo2']),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Tarjeta para el Historial
-  Widget _buildHistorialCard(Map<String, dynamic> solicitud) {
-    return Card(
-      color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      elevation: 5.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoRow(Icons.confirmation_number, 'No. Solicitud',
-                solicitud['id'].toString()),
-            const SizedBox(height: 8.0),
             _buildInfoRow(
-                Icons.calendar_today, 'Año', solicitud['año'].toString()),
+                Icons.confirmation_number, 'ID', solicitud['id'].toString()),
+            _buildInfoRow(
+              Icons.calendar_today,
+              'Fecha de Solicitud',
+              _formatFechaSolicitud(solicitud['fecha_solicitud']),
+            ),
+            _buildInfoRow(
+                Icons.date_range, 'Rango de Fechas', solicitud['rango_fechas']),
+            _buildInfoRow(Icons.timelapse, 'Días Seleccionados',
+                solicitud['dias_seleccionados'].toString()),
             const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.date_range, 'Fecha de Solicitud',
-                solicitud['fechaSolicitud']),
+            _buildAutorizacionRow('Autorización 1', solicitud['estado'],
+                solicitud['motivo_rechazo']),
             const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.timelapse, 'Días solicitados',
-                solicitud['diasSolicitados'].toString()),
-            const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.calendar_view_day, 'Fechas solicitadas',
-                solicitud['fechasSolicitadas']),
-            const SizedBox(height: 8.0),
-            _buildInfoRow(Icons.event_available, 'Día de Autorización',
-                solicitud['diaAutorizacion']),
-            if (solicitud['rechazo'] != null && solicitud['rechazo'].isNotEmpty)
-              _buildInfoRow(Icons.warning, 'Rechazo', solicitud['rechazo']),
+            _buildAutorizacionRow('Autorización 2', solicitud['estado_2'],
+                solicitud['motivo_rechazo_2']),
           ],
         ),
       ),
     );
   }
 
-  // Método para construir una fila de información
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,12 +218,11 @@ class _VerSolicitudPageState extends State<VerSolicitudPage>
     );
   }
 
-  // Método para construir una fila de autorización
   Widget _buildAutorizacionRow(
       String label, String status, String motivoRechazo) {
     Color statusColor;
     switch (status) {
-      case 'Aprobada':
+      case 'Autorizada':
         statusColor = Colors.green;
         break;
       case 'Rechazada':

@@ -1,16 +1,25 @@
+import 'dart:convert';
+import 'package:empleados_app/ver_solicitud_page.dart';
+import 'package:http/http.dart' as http;
 import 'package:empleados_app/solicitud_emergencia_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:flutter_animate/flutter_animate.dart'; // Importar el paquete de animaciones
+import 'package:flutter_animate/flutter_animate.dart';
 
 class SolicitudVacacionesPage extends StatefulWidget {
   final String username;
   final String rol;
   final String roluser;
+  final String userId;
 
-  const SolicitudVacacionesPage(
-      {super.key, this.username = '', this.rol = '', this.roluser = ''});
+  const SolicitudVacacionesPage({
+    super.key,
+    this.username = '',
+    this.rol = '',
+    this.roluser = '',
+    this.userId = '',
+  });
 
   @override
   _SolicitudVacacionesPageState createState() =>
@@ -27,8 +36,7 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
   int _diasSeleccionados = 0;
-  final List<DateTime> _diasSolicitados =
-      []; // Lista para almacenar los días seleccionados
+  final List<DateTime> _diasSolicitados = [];
 
   CalendarFormat _calendarFormat = CalendarFormat.month;
   late DateTime _focusedDay;
@@ -64,9 +72,18 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
       // Mostrar un mensaje de error si la fecha seleccionada es antes de la fecha mínima permitida
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              'Por favor selecciona una fecha con al menos 7 días hábiles de anticipación.',
-              style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold)),
+          content: Row(
+            children: [
+              Icon(Icons.calendar_month_outlined, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Por favor selecciona una fecha con al menos 7 días hábiles de anticipación.',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
           backgroundColor: Colors.orange[800],
           duration: Duration(seconds: 4),
           behavior: SnackBarBehavior.floating,
@@ -120,37 +137,100 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
   }
 
   // Función para enviar la solicitud
-  void _enviarSolicitud() {
-    //LLAMAMOS LA FUNCION PARA LIMPIAR LOS CAMPOS
-    _resetFields();
-    //SIMULACION DE ENVIO DE SOLICITUD
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text(
-            "Solicitud Enviada",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-              "Tu solicitud de vacaciones fue enviada exitosamente para revisión y autorización."),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("Entendido",
-                  style: TextStyle(color: Colors.orange[800])),
+  Future<void> _enviarSolicitud() async {
+    final url = Uri.parse(
+        'http://192.168.1.99/api/vacaciones/enviar_solicitud_vacaciones.php');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': widget.userId,
+        'username': widget.username,
+        'rol_user': widget.roluser,
+        'rol': widget.rol,
+        'fecha_solicitud': dateController.text,
+        'rango_fechas': rangoFechaController.text,
+        'dias_seleccionados': _diasSeleccionados,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      if (responseData.containsKey('error')) {
+        _mostrarMensajeError(responseData['error']);
+      } else {
+        _mostrarMensajeExito(
+            responseData['message'] ?? 'Solicitud enviada con éxito');
+        _resetFields();
+      }
+    } else {
+      _mostrarMensajeError(
+          'Error al enviar la solicitud: ${response.statusCode}');
+    }
+  }
+
+  //WIDGET PARA MOSTRAR MENSAJE DE ÉXITO
+  void _mostrarMensajeExito(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                mensaje,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
-        );
-      },
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
     );
   }
 
+  // WIDGET PARA MOSTRAR MENSAJE DE ERROR
+  void _mostrarMensajeError(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                mensaje,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  //FUNCIÓN PARA LIMPIAR LOS CAMPOS
   void _resetFields() {
     setState(() {
       // Limpiar los campos "Días Seleccionados" y "Calendario"
@@ -161,6 +241,7 @@ class _SolicitudVacacionesPageState extends State<SolicitudVacacionesPage> {
     });
   }
 
+  //WIDGET PARA MOSTRAR ALERTA DE INFORMACIÓN
   void _showInformativeDialog() {
     showDialog(
       context: context,

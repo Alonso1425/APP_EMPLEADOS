@@ -13,14 +13,15 @@ class HomePage extends StatefulWidget {
   final String email;
   final String rol;
   final String roluser;
+  final String userId;
 
-  const HomePage({
-    super.key,
-    required this.username,
-    required this.email,
-    required this.rol,
-    required this.roluser,
-  });
+  const HomePage(
+      {super.key,
+      required this.username,
+      required this.email,
+      required this.rol,
+      required this.roluser,
+      required this.userId});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -37,22 +38,25 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     // Inicializar las páginas
     _widgetOptions.addAll([
-      ComunicadosPage(), // Índice 0
+      ComunicadosPage(userId: widget.userId), // Índice 0
       SolicitudVacacionesPage(
         username: widget.username,
         rol: widget.rol,
         roluser: widget.roluser,
+        userId: widget.userId,
       ), // Índice 1
       SolicitudEmergenciaPage(
         username: widget.username,
         rol: widget.rol,
         roluser: widget.roluser,
       ), // Índice 2
-      VerSolicitudPage(), // Índice 3
+      VerSolicitudPage(userId: widget.userId), // Índice 3
       ConfidencialPage(), // Índice 4
       AvisoPrivacidadPage(), // Índice 5
       CodigoEticaPage(), // Índice 6
     ]);
+
+    //print('DESDE EL HOME: Datos de Usuario: ${widget.userId}, ${widget.username}, ${widget.email}, ${widget.rol}, ${widget.roluser}');
   }
 
   // Cambiar la página seleccionada
@@ -128,7 +132,7 @@ class _HomePageState extends State<HomePage> {
               size: 19,
               color: _selectedIndex == index ? Colors.white : Colors.black,
             ),
-            SizedBox(height: 2.0),
+            SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(

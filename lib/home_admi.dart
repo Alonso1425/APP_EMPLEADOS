@@ -1,3 +1,5 @@
+import 'package:empleados_app/aviso_privacidad_page.dart';
+import 'package:empleados_app/codigo_etica_page.dart';
 import 'package:empleados_app/comunicados_admi_page.dart';
 import 'package:empleados_app/confidencial_admi_page.dart';
 import 'package:empleados_app/ver_solicitud_admi_page.dart';
@@ -9,14 +11,15 @@ class HomeAdmiPage extends StatefulWidget {
   final String email;
   final String rol;
   final String roluser;
+  final String userId;
 
-  const HomeAdmiPage({
-    super.key,
-    required this.username,
-    required this.email,
-    required this.rol,
-    required this.roluser,
-  });
+  const HomeAdmiPage(
+      {super.key,
+      required this.username,
+      required this.email,
+      required this.rol,
+      required this.roluser,
+      required this.userId});
 
   @override
   _HomeAdmiState createState() => _HomeAdmiState();
@@ -34,9 +37,11 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
 
     //INICIALIZAMOS LAS PÁGINAS
     _widgetOptions.addAll([
-      ComunicadosAdmiPage(username: widget.username),
+      ComunicadosAdmiPage(username: widget.username, userId: widget.userId),
       AdminVacacionesPage(),
       ConfidencialAdminPage(),
+      AvisoPrivacidadPage(),
+      CodigoEticaPage(),
     ]);
   }
 
@@ -92,6 +97,41 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
     });
   }
 
+  // Método para construir los ítems de la barra de navegación
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    return InkWell(
+      onTap: () {
+        _onItemTapped(index);
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 2.0),
+        decoration: BoxDecoration(
+          color:
+              _selectedIndex == index ? Colors.blue[800] : Colors.transparent,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 19,
+              color: _selectedIndex == index ? Colors.white : Colors.black,
+            ),
+            SizedBox(height: 2.0),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: _selectedIndex == index ? Colors.white : Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,10 +177,9 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
               ),
             ),
             ListTile(
-              leading:
-                  Icon(Icons.announcement_outlined, color: Colors.blueGrey),
+              leading: Icon(Icons.announcement_outlined, color: Colors.orange),
               title: Text(
-                'Comunicados Importantes',
+                'Comunicados',
                 style: TextStyle(fontSize: 18),
               ),
               onTap: () {
@@ -150,9 +189,9 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
             ),
             ListTile(
               leading:
-                  Icon(Icons.beach_access_outlined, color: Colors.blueGrey),
+                  Icon(Icons.beach_access_outlined, color: Colors.lightGreen),
               title: Text(
-                'Ver Solicitudes de Vacaciones',
+                'Solicitudes de Vacaciones',
                 style: TextStyle(fontSize: 18),
               ),
               onTap: () {
@@ -161,13 +200,36 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.privacy_tip_outlined, color: Colors.blueGrey),
+              leading:
+                  Icon(Icons.record_voice_over, color: Colors.blueGrey[900]),
               title: Text(
                 'Acércate',
                 style: TextStyle(fontSize: 18),
               ),
               onTap: () {
                 _onItemTapped(2); // Índice 2
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.security, color: Colors.deepOrange),
+              title: Text(
+                'Aviso de Privacidad',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                _onItemTapped(3); // Índice 3
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.handshake, color: Colors.indigo[900]),
+              title: Text(
+                'Código de Ética',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                _onItemTapped(4); // Índice 4
                 Navigator.pop(context);
               },
             ),
@@ -188,28 +250,22 @@ class _HomeAdmiState extends State<HomeAdmiPage> {
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.announcement),
-            label: 'Ver Comunicados',
+      bottomNavigationBar: BottomAppBar(
+        height: 65,
+        color: Colors.lightBlue,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavItem(Icons.announcement, 'Comunicados', 0),
+              _buildNavItem(Icons.beach_access, 'Solicitudes de Vacaciones', 1),
+              _buildNavItem(Icons.record_voice_over, 'Acércate', 2),
+              _buildNavItem(Icons.security, 'Aviso de Privacidad', 3),
+              _buildNavItem(Icons.handshake, 'Código de Ética', 4),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.beach_access),
-            label: 'Ver Solicitudes de Vacaciones',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.privacy_tip_outlined),
-            label: 'Acércate',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.black,
-        selectedLabelStyle: TextStyle(fontSize: 12.0),
-        backgroundColor: Colors.lightBlue,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
+        ),
       ),
     );
   }

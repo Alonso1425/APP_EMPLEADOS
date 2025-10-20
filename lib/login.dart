@@ -21,13 +21,24 @@ class _LoginPageState extends State<LoginPage> {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Por Favor, Ingresa Todos los Campos.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+          content: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.white,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Por Favor, Ingresa Todos los Campos.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -42,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.234/api/login.php'), //API
+      Uri.parse('http://192.168.1.99/api/login.php'), //API
       body: jsonEncode({
         "email": emailController.text,
         "password": passwordController.text,
@@ -60,10 +71,11 @@ class _LoginPageState extends State<LoginPage> {
       String email = data['email'] ?? 'Email';
       String rol = data['rol'] ?? 'Rol';
       String roluser = data['rol_user'] ?? 'Rol Usuario';
+      String userId = data['user_id']?.toString() ?? '';
 
       // VALIDAMOS EL ROL DE USUARIO
       if (roluser == "Encargados de Área" ||
-          roluser == "Administrativo" ||
+          roluser == "Jefe de Área" ||
           rol == "Encargado de Área") {
         // REDIRIGIMOS A LA PAGINA DE INICIO DE ADMINISTRADOR
         Navigator.pushReplacement(
@@ -74,6 +86,7 @@ class _LoginPageState extends State<LoginPage> {
               email: email,
               rol: rol,
               roluser: roluser,
+              userId: userId,
             ),
           ),
         );
@@ -87,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
               email: email,
               rol: rol,
               roluser: roluser,
+              userId: userId,
             ),
           ),
         );
@@ -94,13 +108,24 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            data['message'],
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+          content: Row(
+            children: [
+              Icon(
+                Icons.warning,
+                color: Colors.white,
+              ),
+              SizedBox(width: 10), // Espacio entre el ícono y el texto
+              Expanded(
+                child: Text(
+                  data['message'],
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -108,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(15.0),
           ),
           margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-          duration: Duration(seconds: 2), // Duración del mensaje
+          duration: Duration(seconds: 2),
         ),
       );
     }

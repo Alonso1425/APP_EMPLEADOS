@@ -10,8 +10,10 @@ import 'dart:convert';
 
 class ComunicadosAdmiPage extends StatefulWidget {
   final String username;
+  final String userId;
 
-  const ComunicadosAdmiPage({super.key, required this.username});
+  const ComunicadosAdmiPage(
+      {super.key, required this.username, required this.userId});
 
   @override
   _ComunicadosAdmiPageState createState() => _ComunicadosAdmiPageState();
@@ -48,39 +50,97 @@ class _ComunicadosAdmiPageState extends State<ComunicadosAdmiPage> {
   }
 
   Future<List<Map<String, dynamic>>> fetchComunicados() async {
-    final response = await http.get(Uri.parse(
-        'http://192.168.1.149/api/comunicados/obtener_comunicados.php'));
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'http://192.168.1.99/api/comunicados/obtener_comunicados.php'),
+      );
 
-    if (response.statusCode == 200) {
-      if (response.body.isNotEmpty) {
-        final data = json.decode(response.body);
-        if (data['status'] == 'success') {
-          return List<Map<String, dynamic>>.from(data['data']);
+      //print('Respuesta obtener: ${response.statusCode} - ${response.body}'); // Debug
+
+      if (response.statusCode == 200) {
+        final decodedData = json.decode(response.body);
+
+        // Verificar si la respuesta tiene la estructura esperada
+        if (decodedData is Map && decodedData.containsKey('data')) {
+          // Estructura: {"status": "success", "data": [...]}
+          final List<dynamic> dataList = decodedData['data'];
+          return dataList.map<Map<String, dynamic>>((item) {
+            return {
+              'titulo': item['titulo'] ?? '',
+              'mensaje': item['mensaje'] ??
+                  item['mensaje'] ??
+                  '', // Compatibilidad con ambos nombres
+              'fecha': item['fecha'] ?? '',
+              'usuario': item['usuario'] ?? '',
+              'imagen': item['imagen'] != null ? item['imagen'] : null,
+            };
+          }).toList();
+        } else if (decodedData is List) {
+          // Estructura: [...] (para compatibilidad hacia atrás)
+          return decodedData.map<Map<String, dynamic>>((item) {
+            return {
+              'titulo': item['titulo'] ?? '',
+              'mensaje': item['mensaje'] ?? item['mensaje'] ?? '',
+              'fecha': item['fecha'] ?? '',
+              'usuario': item['usuario'] ?? '',
+              'imagen': item['imagen'] != null ? item['imagen'] : null,
+            };
+          }).toList();
         } else {
-          throw Exception(
-              'Error al cargar los comunicados: ${data['message']}');
+          throw Exception('Formato de respuesta no reconocido');
         }
       } else {
-        throw Exception('Respuesta vacía del servidor');
+        throw Exception('Error HTTP ${response.statusCode}');
       }
-    } else {
-      throw Exception('Error al conectar con el servidor');
+    } catch (e) {
+      //print('Error en fetchComunicados: $e');
+      throw Exception('Error al obtener los comunicados: $e');
     }
   }
 
-  Future<void> addComunicado(Map<String, String> newComunicado) async {
-    final response = await http.post(
-      Uri.parse('http://192.168.1.149/api/comunicados/crear_comunicado.php'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(newComunicado),
-    );
+  Future<void> addComunicado(Map<String, dynamic> newComunicado) async {
+    try {
+      // Convertir imagen a base64 si existe
+      String? imagenBase64;
+      if (newComunicado['imagen'] != null &&
+          newComunicado['imagen'].isNotEmpty) {
+        final imageFile = File(newComunicado['imagen']);
+        final imageBytes = await imageFile.readAsBytes();
+        imagenBase64 = base64Encode(imageBytes);
+      }
 
-    if (response.statusCode == 200) {
-      print('Comunicado agregado con éxito');
-    } else {
-      throw Exception('Error al agregar el comunicado');
+      final Map<String, dynamic> requestBody = {
+        'titulo': newComunicado['titulo'],
+        'mensaje': newComunicado['mensaje'], // Asegurar que coincide con PHP
+        'username': widget.username, // Usar el username del widget
+        'user_id': widget.userId, // Obtener el ID del usuario
+        'imagen': imagenBase64,
+      };
+
+      //print('Enviando: ${jsonEncode(requestBody)}');
+
+      final response = await http.post(
+        Uri.parse('http://192.168.1.99/api/comunicados/crear_comunicado.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
+      //print('Respuesta: ${response.statusCode} - ${response.body}'); // Debug
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (responseData['status'] == 'success') {
+          //print('Comunicado creado con éxito');
+        } else {
+          throw Exception(responseData['message'] ?? 'Error desconocido.');
+        }
+      } else {
+        throw Exception('Error HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      //print('Error en addComunicado: $e');
+      throw Exception('Error al agregar el comunicado: $e');
     }
   }
 
@@ -162,7 +222,7 @@ class _ComunicadosAdmiPageState extends State<ComunicadosAdmiPage> {
                         ),
                         const SizedBox(height: 8.0),
                         Text(
-                          comunicado['contenido']!,
+                          comunicado['mensaje']!,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.black,
@@ -249,7 +309,7 @@ class AddComunicadoForm extends StatefulWidget {
 class _AddComunicadoFormState extends State<AddComunicadoForm> {
   final _formKey = GlobalKey<FormState>();
   final _tituloController = TextEditingController();
-  final _contenidoController = TextEditingController();
+  final _mensajeController = TextEditingController();
   final username = TextEditingController();
   File? _image;
 
@@ -351,9 +411,9 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                   .fadeIn(duration: 500.ms),
               const SizedBox(height: 20),
               TextFormField(
-                controller: _contenidoController,
+                controller: _mensajeController,
                 decoration: InputDecoration(
-                  labelText: 'Contenido',
+                  labelText: 'Mensaje',
                   labelStyle: const TextStyle(color: Colors.black54),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -372,7 +432,7 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                 maxLines: 5,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa el contenido';
+                    return 'Por favor ingresa el mensaje';
                   }
                   return null;
                 },
@@ -480,7 +540,7 @@ class _AddComunicadoFormState extends State<AddComunicadoForm> {
                   if (_formKey.currentState!.validate()) {
                     final newComunicado = {
                       'titulo': _tituloController.text,
-                      'contenido': _contenidoController.text,
+                      'mensaje': _mensajeController.text,
                       'imagen': _image?.path ?? '',
                       'fecha': _formatDate(DateTime.now()),
                       'usuario': widget.username, // Simulación del usuario

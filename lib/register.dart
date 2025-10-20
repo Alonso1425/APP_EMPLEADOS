@@ -57,13 +57,21 @@ class _RegisterPageState extends State<RegisterPage> {
       // Validar confirmar contraseña
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Por favor, Ingresa Todos los Campos.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Por favor, Ingresa Todos los Campos.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -82,7 +90,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.234/api/register.php'), //API
+      Uri.parse('http://192.168.1.99/api/register.php'), //API
       body: jsonEncode({
         "username": usernameController.text,
         "paternal_surname": paternalsurnameController.text,
@@ -99,7 +107,7 @@ class _RegisterPageState extends State<RegisterPage> {
         "relacion_contacto": relacioncontactoController.text,
         //CAMPOS DE CONTRASEÑA
         "password": passwordController.text,
-        "confirm_password": confirmPasswordController.text, // Nuevo campo
+        "confirm_password": confirmPasswordController.text,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -110,13 +118,26 @@ class _RegisterPageState extends State<RegisterPage> {
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            data['message'],
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+          content: Row(
+            children: [
+              Icon(
+                data['success']
+                    ? Icons.check_circle_outline
+                    : Icons.error_outline,
+                color: Colors.white,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  data['message'],
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           backgroundColor: data['success'] ? Colors.green : Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -124,7 +145,7 @@ class _RegisterPageState extends State<RegisterPage> {
             borderRadius: BorderRadius.circular(15.0),
           ),
           margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
       if (data['success']) {
@@ -133,7 +154,21 @@ class _RegisterPageState extends State<RegisterPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error de Conexión con el Servidor.'),
+          content: Row(
+            children: [
+              Icon(Icons.wifi_off, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Error de Conexión con el Servidor.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -145,13 +180,24 @@ class _RegisterPageState extends State<RegisterPage> {
       // Mostrar error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Las contraseñas no coinciden.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
+          content: Row(
+            children: [
+              Icon(
+                Icons.warning,
+                color: Colors.white,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Las contraseñas no coinciden.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -190,7 +236,7 @@ class _RegisterPageState extends State<RegisterPage> {
               borderRadius: BorderRadius.circular(15.0),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -209,7 +255,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: usernameController,
                     decoration: InputDecoration(
                       labelText: 'Nombre',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
@@ -237,7 +284,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: paternalsurnameController,
                     decoration: InputDecoration(
                       labelText: 'Apellido Paterno',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
@@ -266,7 +314,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: maternalsurnameController,
                     decoration: InputDecoration(
                       labelText: 'Apellido Materno',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
@@ -298,7 +347,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       labelText: 'Número de Empleado',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
@@ -333,7 +383,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                     decoration: InputDecoration(
                       labelText: 'Departamento / Área de Trabajo',
-                      labelStyle: const TextStyle(color: Colors.black),
+                      labelStyle:
+                          const TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: const BorderSide(color: Colors.black),
@@ -384,7 +435,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: emailController,
                     decoration: InputDecoration(
                       labelText: 'Correo Electrónico',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
@@ -415,7 +467,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       labelText: 'Número de Teléfono',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
@@ -449,7 +502,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                     decoration: InputDecoration(
                       labelText: 'Rol de Usuario',
-                      labelStyle: const TextStyle(color: Colors.black),
+                      labelStyle:
+                          const TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: const BorderSide(color: Colors.black),
@@ -513,7 +567,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 controller: contactonombreController,
                                 decoration: InputDecoration(
                                   labelText: 'Nombre Completo',
-                                  labelStyle: TextStyle(color: Colors.black),
+                                  labelStyle: TextStyle(
+                                      color: Colors.black, fontSize: 15.0),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15.0),
                                     borderSide: BorderSide(color: Colors.black),
@@ -541,7 +596,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 controller: domicilioController,
                                 decoration: InputDecoration(
                                   labelText: 'Domicilio',
-                                  labelStyle: TextStyle(color: Colors.black),
+                                  labelStyle: TextStyle(
+                                      color: Colors.black, fontSize: 15.0),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15.0),
                                     borderSide: BorderSide(color: Colors.black),
@@ -573,7 +629,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ],
                                 decoration: InputDecoration(
                                   labelText: 'Número de Teléfono',
-                                  labelStyle: TextStyle(color: Colors.black),
+                                  labelStyle: TextStyle(
+                                      color: Colors.black, fontSize: 15.0),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15.0),
                                     borderSide: BorderSide(color: Colors.black),
@@ -603,7 +660,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 controller: relacioncontactoController,
                                 decoration: InputDecoration(
                                   labelText: 'Relación con el Contacto',
-                                  labelStyle: TextStyle(color: Colors.black),
+                                  labelStyle: TextStyle(
+                                      color: Colors.black, fontSize: 15.0),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15.0),
                                     borderSide: BorderSide(color: Colors.black),
@@ -642,7 +700,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: passwordController,
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
@@ -684,7 +743,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: confirmPasswordController,
                     decoration: InputDecoration(
                       labelText: 'Confirmar Contraseña',
-                      labelStyle: TextStyle(color: Colors.black),
+                      labelStyle:
+                          TextStyle(color: Colors.black, fontSize: 15.0),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
                         borderSide: BorderSide(color: Colors.black),
