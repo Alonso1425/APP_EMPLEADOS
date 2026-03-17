@@ -22,6 +22,7 @@ class _SolicitudEmergenciaPageState extends State<SolicitudEmergenciaPage> {
   final TextEditingController roluserController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
   final TextEditingController rangoFechaController = TextEditingController();
+  final TextEditingController motivoController = TextEditingController();
 
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
@@ -30,8 +31,20 @@ class _SolicitudEmergenciaPageState extends State<SolicitudEmergenciaPage> {
   final CalendarFormat _calendarFormat = CalendarFormat.month;
   late DateTime _focusedDay;
   String? dropdownValue;
+  String? parentescoValue;
   bool showOtherField = false;
   bool showOtherField2 = false;
+
+  // Paleta de colores profesional
+  final Color _primaryColor = const Color(0xFF2C3E50);
+  final Color _secondaryColor = const Color(0xFF3498DB);
+  final Color _accentColor = const Color(0xFFE74C3C);
+  final Color _warningColor = const Color(0xFFF39C12);
+  final Color _successColor = const Color(0xFF27AE60);
+  final Color _backgroundColor = const Color(0xFFF8F9FA);
+  final Color _cardColor = Colors.white;
+  final Color _textColor = const Color(0xFF2C3E50);
+  final Color _hintColor = const Color(0xFF7F8C8D);
 
   @override
   void initState() {
@@ -56,7 +69,6 @@ class _SolicitudEmergenciaPageState extends State<SolicitudEmergenciaPage> {
     dateController.text = currentDate;
   }
 
-  // Función para manejar la selección de fechas individualmente
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
       _focusedDay = focusedDay;
@@ -77,33 +89,105 @@ class _SolicitudEmergenciaPageState extends State<SolicitudEmergenciaPage> {
     });
   }
 
-  //FUNCION SIMULADA PARA ENVIAR LA SOLICITUD
   void _enviarSolicitudEmergencia() {
+    if (_diasSeleccionados == 0) {
+      _mostrarMensajeError(
+          'Por favor selecciona al menos un día de emergencia.');
+      return;
+    }
+
+    if (dropdownValue == null) {
+      _mostrarMensajeError('Por favor selecciona el tipo de emergencia.');
+      return;
+    }
+
+    if (dropdownValue == "Otro" && motivoController.text.isEmpty) {
+      _mostrarMensajeError('Por favor especifica el motivo de la emergencia.');
+      return;
+    }
+
+    if (dropdownValue == "Enfermedad" && parentescoValue == null) {
+      _mostrarMensajeError(
+          'Por favor selecciona el parentesco con el familiar.');
+      return;
+    }
+
     _resetfields();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text(
-            "Solicitud de Emergencia Enviada",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+          backgroundColor: _cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.check_circle, color: _successColor),
+              SizedBox(width: 10),
+              Text(
+                "Solicitud Enviada",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: _textColor,
+                ),
+              ),
+            ],
           ),
           content: Text(
-              "Tu solicitud de vacaciones de emergencia fue enviada exitosamente para revisión y autorización."),
+            "Tu solicitud de vacaciones de emergencia fue enviada exitosamente para revisión y autorización.",
+            style: TextStyle(
+              color: _textColor.withOpacity(0.8),
+              height: 1.4,
+            ),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("Entendido",
-                  style: TextStyle(color: Colors.orange[800])),
+              child: Text(
+                "ENTENDIDO",
+                style: TextStyle(
+                  color: _secondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );
       },
+    );
+  }
+
+  void _mostrarMensajeError(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                mensaje,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: _accentColor,
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      ),
     );
   }
 
@@ -113,28 +197,51 @@ class _SolicitudEmergenciaPageState extends State<SolicitudEmergenciaPage> {
       _diasSeleccionados = 0;
       rangoFechaController.clear();
       dropdownValue = null;
+      parentescoValue = null;
+      motivoController.clear();
       showOtherField = false;
       showOtherField2 = false;
     });
   }
 
-  //MENSAJE DE ALERTA DE INFORMACIÓN AL ENTRAR A LA PANTALLA
   void _showInformativeDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text('Importante',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          backgroundColor: _cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber, color: _warningColor),
+              SizedBox(width: 10),
+              Text(
+                'Importante',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: _textColor,
+                ),
+              ),
+            ],
+          ),
           content: Text(
-              'Las vacaciones por emergencia solamente serán autorizadas cuando se trate de situaciones no previstas o de emergencia, tales como: Accidente, Enfermedad o Fallecimiento de un Familiar en primer o segundo grado.'),
+            'Las vacaciones por emergencia solamente serán autorizadas cuando se trate de situaciones no previstas o de emergencia, tales como: Accidente, Enfermedad o Fallecimiento de un Familiar en primer o segundo grado.',
+            style: TextStyle(
+              color: _textColor.withOpacity(0.8),
+              height: 1.4,
+            ),
+          ),
           actions: <Widget>[
             TextButton(
-              child: Text('Aceptar',
-                  style: TextStyle(
-                      color: Colors.orange[900], fontWeight: FontWeight.bold)),
+              child: Text(
+                'ACEPTAR',
+                style: TextStyle(
+                  color: _secondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -147,390 +254,625 @@ class _SolicitudEmergenciaPageState extends State<SolicitudEmergenciaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isSmallScreen = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text(
-          'Solicitud de Vacaciones de Emergencia',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 19,
+      backgroundColor: _backgroundColor,
+      // appBar: AppBar(
+      //   title: Text(
+      //     'Solicitud de Emergencia',
+      //     style: TextStyle(
+      //       color: Colors.white,
+      //       fontWeight: FontWeight.w600,
+      //       fontSize: isSmallScreen ? 18 : 20,
+      //     ),
+      //   ).animate().fadeIn(duration: 500.ms),
+      //   backgroundColor: _primaryColor,
+      //   centerTitle: true,
+      //   elevation: 0,
+      //   iconTheme: const IconThemeData(color: Colors.white),
+      // ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header informativo
+              _buildHeaderSection(isSmallScreen),
+              SizedBox(height: 20),
+
+              // Información del empleado
+              _buildEmployeeInfoSection(isSmallScreen),
+              SizedBox(height: 20),
+
+              // Calendario
+              _buildCalendarSection(isSmallScreen),
+              SizedBox(height: 20),
+
+              // Resumen de selección
+              _buildSelectionSummarySection(isSmallScreen),
+              SizedBox(height: 20),
+
+              // Tipo de emergencia
+              _buildEmergencyTypeSection(isSmallScreen),
+              SizedBox(height: 20),
+
+              // Botón de enviar
+              _buildActionButtonSection(isSmallScreen),
+            ],
           ),
-        ).animate().fadeIn(duration: 500.ms),
-        backgroundColor: Colors.yellow[900],
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Solicitud de Vacaciones de Emergencia',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ).animate().fadeIn(duration: 500.ms),
-            const SizedBox(height: 20.0),
-            _buildTextField(
-              controller: dateController,
-              label: 'Fecha de Solicitud',
-              icon: Icons.today,
-              readOnly: true,
-            )
-                .animate()
-                .slideX(
-                    begin: -1.0,
-                    end: 0.0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut)
-                .fadeIn(duration: 500.ms),
-            const SizedBox(height: 16.0),
-            _buildTextField(
-              controller: usernameController,
-              label: 'Nombre de Empleado',
-              icon: Icons.person_outline,
-              readOnly: true,
-            )
-                .animate()
-                .slideX(
-                    begin: -1.0,
-                    end: 0.0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut)
-                .fadeIn(duration: 500.ms),
-            SizedBox(height: 16.0),
-            _buildTextField(
-              controller: roluserController,
-              label: 'Cargo que Desempeña',
-              icon: Icons.business_center,
-              readOnly: true,
-            )
-                .animate()
-                .slideX(
-                    begin: -1.0,
-                    end: 0.0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut)
-                .fadeIn(duration: 500.ms),
-            const SizedBox(height: 16.0),
-            _buildTextField(
-              controller: rolController,
-              label: 'Área',
-              icon: Icons.apartment,
-              readOnly: true,
-            )
-                .animate()
-                .slideX(
-                    begin: -1.0,
-                    end: 0.0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut)
-                .fadeIn(duration: 500.ms),
-            SizedBox(height: 16.0),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 1.0,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Calendario',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal[800],
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  TableCalendar(
-                    firstDay: DateTime.utc(2020, 1, 1),
-                    lastDay: DateTime.utc(2100, 12, 31),
-                    focusedDay: _focusedDay,
-                    selectedDayPredicate: (day) {
-                      return _diasSolicitados.contains(day);
-                    },
-                    onDaySelected: _onDaySelected,
-                    calendarFormat: _calendarFormat,
-                    onPageChanged: (focusedDay) {
-                      _focusedDay = focusedDay;
-                    },
-                    headerStyle: HeaderStyle(
-                      formatButtonVisible: false,
-                      titleCentered: true,
-                      leftChevronIcon:
-                          Icon(Icons.chevron_left, color: Colors.orange),
-                      rightChevronIcon:
-                          Icon(Icons.chevron_right, color: Colors.orange),
-                      headerPadding: EdgeInsets.symmetric(vertical: 8.0),
-                      titleTextStyle: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal[800],
-                      ),
-                    ),
-                    daysOfWeekStyle: DaysOfWeekStyle(
-                      weekdayStyle: TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal[800],
-                      ),
-                      weekendStyle: TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange,
-                      ),
-                    ),
-                    calendarStyle: CalendarStyle(
-                      outsideDaysVisible: false,
-                      selectedDecoration: BoxDecoration(
-                        color: Colors.orange,
-                        shape: BoxShape.circle,
-                      ),
-                      todayDecoration: BoxDecoration(
-                        color: Colors.teal[100],
-                        shape: BoxShape.circle,
-                      ),
-                      todayTextStyle: TextStyle(
-                        color: Colors.teal[800],
-                        fontWeight: FontWeight.bold,
-                      ),
-                      defaultTextStyle: TextStyle(
-                        color: Colors.teal[600],
-                      ),
-                      weekendTextStyle: TextStyle(
-                        color: Colors.orange,
-                      ),
-                    ),
-                    availableGestures: AvailableGestures.all,
-                  ),
-                ],
-              ),
-            )
-                .animate()
-                .slideX(
-                    begin: 1.0,
-                    end: 0.0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut)
-                .fadeIn(duration: 500.ms),
-            const SizedBox(height: 16.0),
-            Row(
-              children: [
-                Text(
-                  'Días Seleccionados:',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueGrey,
-                  ),
-                ),
-                SizedBox(
-                    width:
-                        5), // Poner un poco de espacio entre el texto y los días seleccionados
-                Expanded(
-                  child: Text(
-                    '$_diasSeleccionados',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey,
-                    ),
-                    overflow: TextOverflow
-                        .ellipsis, // Limitar el texto a una línea y añadir "..." si es necesario
-                  ),
-                ),
-              ],
-            ).animate().fadeIn(duration: 500.ms), // Animación de fadeIn
-            const SizedBox(height: 16.0),
-
-            _buildTextField(
-              controller: rangoFechaController,
-              label: 'Fechas Seleccionadas',
-              icon: Icons.date_range,
-              readOnly: true,
-            )
-                .animate()
-                .slideX(
-                    begin: -1.0,
-                    end: 0.0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut)
-                .fadeIn(duration: 500.ms),
-            const SizedBox(height: 20.0),
-
-            DropdownButtonFormField<String>(
-              value: dropdownValue,
-              onChanged: (String? newValue) {
-                setState(() {
-                  //dropdownValue = newValue!;
-                  dropdownValue = newValue;
-                  showOtherField = dropdownValue == "Otro";
-                  showOtherField2 = dropdownValue == "Enfermedad";
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Tipo de Emergencia',
-                labelStyle: const TextStyle(color: Colors.black),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                  borderSide: const BorderSide(color: Colors.black),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                  borderSide: BorderSide(color: Colors.grey[400]!),
-                ),
-                prefixIcon: Icon(Icons.warning, color: Colors.black),
-                hintStyle: const TextStyle(color: Colors.grey),
-              ),
-              style: TextStyle(color: Colors.black, fontSize: 16.0),
-              dropdownColor: Colors.white,
-              icon: Icon(Icons.arrow_drop_down, color: Colors.black),
-              items: <String>[
-                'Enfermedad',
-                'Accidente',
-                'Fallecimiento',
-                'Otro'
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            )
-                .animate()
-                .slideX(
-                    begin: -1.0,
-                    end: 0.0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut)
-                .fadeIn(duration: 500.ms),
-            const SizedBox(height: 16.0),
-            //
-            Visibility(
-              visible: showOtherField,
-              child: TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Por Favor Especifique el Motivo',
-                  labelStyle: const TextStyle(color: Colors.black),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
-                  ),
-                  prefixIcon: Icon(Icons.info, color: Colors.black),
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10.0),
-            //
-            //
-            Visibility(
-              visible: showOtherField2,
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Parentesco / Relación con el Familiar',
-                  labelStyle: const TextStyle(color: Colors.black),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    borderSide: const BorderSide(color: Colors.black),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
-                  ),
-                  prefixIcon: Icon(Icons.info, color: Colors.black),
-                  hintStyle: const TextStyle(color: Colors.grey),
-                ),
-                style: TextStyle(color: Colors.black, fontSize: 16.0),
-                dropdownColor: Colors.white,
-                value: null,
-                onChanged: (String? newValue) {},
-                items: <String>[
-                  'Esposo(a) / Pareja',
-                  'Padre / Madre',
-                  'Hijo(a)',
-                  'Hermano(a)',
-                  'Abuelo(a)',
-                  'Padre / Madre del esposo(a) / Pareja',
-                  'Hijo(a) del esposo(a) / Pareja',
-                  'Hermano(a) del esposo(a) / Pareja',
-                  'Abuelo(a) del esposo(a) / Pareja',
-                ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 20.0),
-
-            ElevatedButton(
-              onPressed: _enviarSolicitudEmergencia,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.lightGreen[700],
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: Text('Enviar Solicitud',
-                  style: TextStyle(color: Colors.white)),
-            ).animate().scale(delay: 500.ms),
-            SizedBox(height: 20.0),
-          ],
         ),
       ),
     );
   }
 
-  //WIDGET DE CAMPOS DE FORMULARIO PARA DARLES UN DISEÑO
+  Widget _buildHeaderSection(bool isSmallScreen) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _accentColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _accentColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.emergency,
+            size: 40,
+            color: _accentColor,
+          ),
+          SizedBox(height: 10),
+          Text(
+            'Solicitud de Emergencia',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 20 : 24,
+              fontWeight: FontWeight.w700,
+              color: _textColor,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Para situaciones no previstas que requieren atención inmediata',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              color: _hintColor,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 600.ms);
+  }
+
+  Widget _buildEmployeeInfoSection(bool isSmallScreen) {
+    return Card(
+      color: _cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(Icons.person_outline, color: _secondaryColor),
+                SizedBox(width: 10),
+                Text(
+                  'Información del Solicitante',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: _textColor,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildInfoRow(
+              label: 'Fecha de Solicitud',
+              value: dateController.text,
+              icon: Icons.today,
+            ),
+            SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Nombre del Empleado',
+              value: usernameController.text,
+              icon: Icons.person,
+            ),
+            SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Cargo',
+              value: rolController.text,
+              icon: Icons.business_center,
+            ),
+            SizedBox(height: 12),
+            _buildInfoRow(
+              label: 'Área/Departamento',
+              value: roluserController.text,
+              icon: Icons.apartment,
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate()
+        .slideX(
+          begin: -0.5,
+          end: 0.0,
+          duration: 500.ms,
+          curve: Curves.easeOut,
+        )
+        .fadeIn(duration: 600.ms);
+  }
+
+  Widget _buildInfoRow({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: _hintColor),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _hintColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendarSection(bool isSmallScreen) {
+    return Card(
+      color: _cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.calendar_month, color: _secondaryColor),
+                SizedBox(width: 10),
+                Text(
+                  'Selecciona los días de emergencia',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: _textColor,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TableCalendar(
+                firstDay: DateTime.utc(2020, 1, 1),
+                lastDay: DateTime.utc(2100, 12, 31),
+                focusedDay: _focusedDay,
+                selectedDayPredicate: (day) => _diasSolicitados.contains(day),
+                onDaySelected: _onDaySelected,
+                calendarFormat: _calendarFormat,
+                onPageChanged: (focusedDay) {
+                  setState(() => _focusedDay = focusedDay);
+                },
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  leftChevronIcon:
+                      Icon(Icons.chevron_left, color: _secondaryColor),
+                  rightChevronIcon:
+                      Icon(Icons.chevron_right, color: _secondaryColor),
+                  headerPadding: EdgeInsets.symmetric(vertical: 12),
+                  titleTextStyle: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _textColor,
+                  ),
+                ),
+                daysOfWeekStyle: DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: _textColor,
+                  ),
+                  weekendStyle: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: _accentColor,
+                  ),
+                ),
+                calendarStyle: CalendarStyle(
+                  outsideDaysVisible: false,
+                  selectedDecoration: BoxDecoration(
+                    color: _accentColor,
+                    shape: BoxShape.circle,
+                  ),
+                  todayDecoration: BoxDecoration(
+                    color: _accentColor.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _accentColor),
+                  ),
+                  todayTextStyle: TextStyle(
+                    color: _accentColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  defaultTextStyle: TextStyle(
+                    color: _textColor,
+                  ),
+                  weekendTextStyle: TextStyle(
+                    color: _accentColor,
+                  ),
+                  selectedTextStyle: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                availableGestures: AvailableGestures.all,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '💡 Toca los días que necesitas por emergencia',
+              style: TextStyle(
+                fontSize: 12,
+                color: _hintColor,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate()
+        .slideX(
+          begin: 0.5,
+          end: 0.0,
+          duration: 500.ms,
+          curve: Curves.easeOut,
+        )
+        .fadeIn(duration: 600.ms);
+  }
+
+  Widget _buildSelectionSummarySection(bool isSmallScreen) {
+    return Card(
+      color: _cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.summarize, color: _secondaryColor),
+                SizedBox(width: 10),
+                Text(
+                  'Resumen de Selección',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: _textColor,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildSummaryItem(
+              icon: Icons.calendar_today,
+              label: 'Días de Emergencia',
+              value: '$_diasSeleccionados',
+              color: _accentColor,
+            ),
+            SizedBox(height: 12),
+            _buildSummaryItem(
+              icon: Icons.date_range,
+              label: 'Fechas Seleccionadas',
+              value: rangoFechaController.text.isNotEmpty
+                  ? rangoFechaController.text
+                  : 'No hay fechas seleccionadas',
+              color: _diasSeleccionados > 0 ? _successColor : _hintColor,
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(duration: 700.ms);
+  }
+
+  Widget _buildSummaryItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _hintColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _textColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmergencyTypeSection(bool isSmallScreen) {
+    return Card(
+      color: _cardColor,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning, color: _accentColor),
+                SizedBox(width: 10),
+                Text(
+                  'Tipo de Emergencia',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: _textColor,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildDropdownField(
+              value: dropdownValue,
+              onChanged: (String? newValue) {
+                setState(() {
+                  dropdownValue = newValue;
+                  showOtherField = dropdownValue == "Otro";
+                  showOtherField2 = dropdownValue == "Enfermedad";
+                  if (!showOtherField) motivoController.clear();
+                  if (!showOtherField2) parentescoValue = null;
+                });
+              },
+              label: 'Selecciona el tipo de emergencia',
+              icon: Icons.emergency,
+              items: ['Enfermedad', 'Accidente', 'Fallecimiento', 'Otro'],
+              isRequired: true,
+            ),
+            SizedBox(height: 16),
+            if (showOtherField)
+              _buildTextField(
+                controller: motivoController,
+                label: 'Especifica el motivo de la emergencia',
+                icon: Icons.description,
+                maxLines: 3,
+              ).animate().fadeIn(duration: 300.ms),
+            if (showOtherField2)
+              Column(
+                children: [
+                  SizedBox(height: 16),
+                  _buildDropdownField(
+                    value: parentescoValue,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        parentescoValue = newValue;
+                      });
+                    },
+                    label: 'Parentesco con el familiar',
+                    icon: Icons.family_restroom,
+                    items: [
+                      'Esposo(a) / Pareja',
+                      'Padre / Madre',
+                      'Hijo(a)',
+                      'Hermano(a)',
+                      'Abuelo(a)',
+                      'Padre / Madre del esposo(a) / Pareja',
+                      'Hijo(a) del esposo(a) / Pareja',
+                      'Hermano(a) del esposo(a) / Pareja',
+                      'Abuelo(a) del esposo(a) / Pareja',
+                    ],
+                    isRequired: true,
+                  ).animate().fadeIn(duration: 300.ms),
+                ],
+              ),
+          ],
+        ),
+      ),
+    )
+        .animate()
+        .slideX(
+          begin: -0.5,
+          end: 0.0,
+          duration: 500.ms,
+          curve: Curves.easeOut,
+        )
+        .fadeIn(duration: 600.ms);
+  }
+
+  Widget _buildDropdownField({
+    required String? value,
+    required Function(String?) onChanged,
+    required String label,
+    required IconData icon,
+    required List<String> items,
+    bool isRequired = false,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: '$label${isRequired ? ' *' : ''}',
+        labelStyle: TextStyle(color: _textColor.withOpacity(0.7)),
+        floatingLabelStyle: TextStyle(color: _secondaryColor),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _secondaryColor, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[400]!),
+        ),
+        prefixIcon: Icon(icon, color: _textColor.withOpacity(0.6)),
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      style: TextStyle(color: _textColor, fontSize: 16),
+      dropdownColor: _cardColor,
+      icon: Icon(Icons.arrow_drop_down, color: _textColor.withOpacity(0.6)),
+      isExpanded: true,
+      items: items.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            style: TextStyle(color: _textColor),
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
-    bool readOnly = false,
-    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    bool isRequired = false,
   }) {
     return TextField(
       controller: controller,
-      keyboardType: keyboardType,
-      readOnly: readOnly,
+      maxLines: maxLines,
       decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.black),
+        labelText: '$label${isRequired ? ' *' : ''}',
+        labelStyle: TextStyle(color: _textColor.withOpacity(0.7)),
+        floatingLabelStyle: TextStyle(color: _secondaryColor),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          borderSide: const BorderSide(color: Colors.black),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _secondaryColor, width: 2),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15.0),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey[400]!),
         ),
-        prefixIcon: Icon(icon, color: Colors.black),
-        hintStyle: const TextStyle(color: Colors.grey),
+        prefixIcon: Icon(icon, color: _textColor.withOpacity(0.6)),
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      cursorColor: Colors.black,
+      cursorColor: _secondaryColor,
+      style: TextStyle(color: _textColor),
     );
+  }
+
+  Widget _buildActionButtonSection(bool isSmallScreen) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _enviarSolicitudEmergencia,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _diasSeleccionados > 0 && dropdownValue != null
+              ? _accentColor
+              : Colors.grey[400],
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(
+            horizontal: 32,
+            vertical: isSmallScreen ? 16 : 18,
+          ),
+          textStyle: TextStyle(
+            fontSize: isSmallScreen ? 16 : 18,
+            fontWeight: FontWeight.w600,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.send, size: 20, color: Colors.white),
+            SizedBox(width: 10),
+            Text('ENVIAR SOLICITUD DE EMERGENCIA'),
+          ],
+        ),
+      ),
+    ).animate().scale(delay: 800.ms);
   }
 }
